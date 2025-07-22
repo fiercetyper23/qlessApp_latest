@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QLess - Browse Items</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <div style="text-align: center; margin-bottom: 20px; padding: 10px; background: #f5f5f5; border-bottom: 1px solid #ccc;">
+        <h2>Browse Items</h2>
+        <div style="margin-top: 10px;">
+            <a href="dashboard.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">🏠 Home</a>
+            <a href="items.html" style="margin: 0 8px; text-decoration: none; color: #007bff; font-weight: bold;">🛒 Shop</a>
+            <a href="cart.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">🛍️ Cart (<span id="cartCount">0</span>)</a>
+            <a href="favourites.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">❤️ Favourites</a>
+            <a href="wallet.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">💳 Wallet</a>
+            <a href="containerloan.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">📦 Containers</a>
+            <a href="transactions.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">📊 Transactions</a>
+            <a href="profile.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">👤 Profile</a>
+            <a href="notifications.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">🔔 Alerts</a>
+            <a href="#" onclick="logout()" style="margin: 0 8px; text-decoration: none; color: #007bff;">📤 Logout</a>
+        </div>
+    </div>
+
+    <!-- Items Container -->
+    <div style="max-width: 1200px; margin: 20px auto; padding: 20px;">
+        
+        <!-- Alert Messages -->
+        <div id="alertMessage" style="display: none;"></div>
+        
+        <!-- Search and Filter Section -->
+        <div style="background: #f9f9f9; padding: 20px; margin-bottom: 20px; border: 1px solid #ddd;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                
+                <div class="form-group">
+                    <label for="searchQuery">Search Items:</label>
+                    <input type="text" id="searchQuery" placeholder="Search by name, category..." onkeyup="handleSearch()">
+                </div>
+                
+                <div class="form-group">
+                    <label for="categoryFilter">Category:</label>
+                    <select id="categoryFilter" onchange="handleFilter()">
+                        <option value="">All Categories</option>
+                        <option value="bakery">Bakery</option>
+                        <option value="produce">Produce</option>
+                        <option value="dairy">Dairy</option>
+                        <option value="meat">Meat & Seafood</option>
+                        <option value="prepared">Prepared Foods</option>
+                        <option value="beverages">Beverages</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="priceFilter">Max Price:</label>
+                    <select id="priceFilter" onchange="handleFilter()">
+                        <option value="">Any Price</option>
+                        <option value="5">Under $5</option>
+                        <option value="10">Under $10</option>
+                        <option value="20">Under $20</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="timeFilter">Expires:</label>
+                    <select id="timeFilter" onchange="handleFilter()">
+                        <option value="">Any Time</option>
+                        <option value="today">Today</option>
+                        <option value="tomorrow">Tomorrow</option>
+                        <option value="week">This Week</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sortBy">Sort By:</label>
+                    <select id="sortBy" onchange="handleSort()">
+                        <option value="expiry">Expiry Date</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="discount">Discount %</option>
+                        <option value="distance">Distance</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; align-items: end;">
+                    <button onclick="clearFilters()" style="background: #6c757d; padding: 10px 20px;">Clear Filters</button>
+                </div>
+                
+            </div>
+            
+            <div style="margin-top: 15px; display: flex; align-items: center; gap: 15px;">
+                <label>
+                    <input type="checkbox" id="urgentOnly" onchange="handleFilter()"> Urgent (expires today) only
+                </label>
+                <label>
+                    <input type="checkbox" id="nearbyOnly" onchange="handleFilter()"> Nearby only (within 5km)
+                </label>
+            </div>
+        </div>
+        
+        <!-- Results Summary -->
+        <div style="margin-bottom: 20px; padding: 10px; background: #e7f3ff; border: 1px solid #b3d9ff;">
+            <p style="margin: 0; color: #0066cc;">
+                <span id="resultsCount">Loading items...</span> • 
+                <span style="font-weight: bold;">Total savings available: <span id="totalSavings">$0</span></span>
+            </p>
+        </div>
+        
+        <!-- Items Grid -->
+        <div id="itemsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+            <!-- Items loaded via JavaScript -->
+            <div style="text-align: center; padding: 40px;">
+                <p>Loading items...</p>
+            </div>
+        </div>
+        
+        <!-- Load More Button -->
+        <div style="text-align: center; margin-top: 30px;">
+            <button id="loadMoreBtn" onclick="loadMoreItems()" style="background: #007bff; padding: 12px 30px; display: none;">
+                Load More Items
+            </button>
+        </div>
+        
+    </div>
+
+    <!-- Item Details Modal -->
+    <div id="itemModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="background: white; width: 90%; max-width: 500px; margin: 50px auto; padding: 20px; border-radius: 5px;">
+            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px;">
+                <h3 id="modalItemName">Item Name</h3>
+                <button onclick="closeModal()" style="background: #dc3545; padding: 5px 10px; margin-left: auto;">✕</button>
+            </div>
+            
+            <div id="modalContent">
+                <!-- Modal content loaded via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://djkzzr6w1g.execute-api.us-east-1.amazonaws.com/default';
+        let allItems = [];
+        let filteredItems = [];
+        let displayedItems = [];
+        let currentPage = 0;
+        const itemsPerPage = 12;
+        
+        window.addEventListener('load', function() {
+            checkAuthentication();
+            loadItems();
+            updateCartCount();
+        }
+        
+        async function addToFavourites(itemId) {
+            const userId = sessionStorage.getItem("user_id");
+            const item = allItems.find(i => i.id === itemId);
+            if (!item) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/favourites`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        item_id: itemId,
+                        name: item.name,
+                        price: item.discountedPrice,
+                        original_price: item.originalPrice,
+                        merchant: item.merchant,
+                        category: item.category,
+                        description: item.description,
+                        expiry_time: new Date(Date.now() + item.expiryHours*60*60*1000).toISOString()
+                    })
+                });
+                
+                if (response.ok) {
+                    showAlert(`${item.name} added to favourites!`, 'success');
+                } else {
+                    showAlert('Failed to add to favourites', 'danger');
+                }
+            } catch (error) {
+                console.error('Error adding to favourites:', error);
+                showAlert('Error adding to favourites', 'danger');
+            }
+        });
+        
+        function checkAuthentication() {
+            const userId = sessionStorage.getItem("user_id");
+            if (!userId) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+        
+        async function loadItems() {
+            try {
+                // Call your items API
+                const response = await fetch(`${API_BASE_URL}/api/items`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    allItems = data.items || [];
+                } else {
+                    // Fallback to sample data if API fails
+                    allItems = getSampleItems();
+                }
+                
+                filteredItems = [...allItems];
+                displayItems();
+                updateResultsSummary();
+                
+            } catch (error) {
+                console.error('Error loading items:', error);
+                showAlert('Error loading items, showing sample data', 'warning');
+                allItems = getSampleItems();
+                filteredItems = [...allItems];
+                displayItems();
+                updateResultsSummary();
+            }
+        }
+        
+        function getSampleItems() {
+            return [
+                {
+                    id: 'item1',
+                    name: 'Fresh Sourdough Bread',
+                    category: 'bakery',
+                    originalPrice: 8.50,
+                    discountedPrice: 3.50,
+                    expiryTime: 'Today 6:00 PM',
+                    expiryHours: 2,
+                    merchant: 'Artisan Bakery',
+                    distance: 0.8,
+                    description: 'Freshly baked sourdough bread, perfect for sandwiches or toast.',
+                    imageUrl: '',
+                    isUrgent: true,
+                    dietary: ['vegetarian']
+                },
+                {
+                    id: 'item2',
+                    name: 'Mixed Green Salad',
+                    category: 'produce',
+                    originalPrice: 6.50,
+                    discountedPrice: 2.00,
+                    expiryTime: 'Today 8:00 PM',
+                    expiryHours: 4,
+                    merchant: 'Fresh Market',
+                    distance: 1.2,
+                    description: 'Fresh mixed greens with cherry tomatoes and cucumber.',
+                    imageUrl: '',
+                    isUrgent: true,
+                    dietary: ['vegetarian', 'vegan', 'gluten-free']
+                },
+                {
+                    id: 'item3',
+                    name: 'Seasonal Fruit Bowl',
+                    category: 'produce',
+                    originalPrice: 12.00,
+                    discountedPrice: 4.00,
+                    expiryTime: 'Tomorrow 2:00 PM',
+                    expiryHours: 18,
+                    merchant: 'Corner Deli',
+                    distance: 2.1,
+                    description: 'Assorted seasonal fruits - apples, oranges, and bananas.',
+                    imageUrl: '',
+                    isUrgent: false,
+                    dietary: ['vegetarian', 'vegan', 'gluten-free']
+                },
+                {
+                    id: 'item4',
+                    name: 'Chicken Caesar Wrap',
+                    category: 'prepared',
+                    originalPrice: 9.50,
+                    discountedPrice: 5.50,
+                    expiryTime: 'Today 9:00 PM',
+                    expiryHours: 5,
+                    merchant: 'Quick Eats',
+                    distance: 0.5,
+                    description: 'Grilled chicken, romaine lettuce, parmesan cheese in a flour tortilla.',
+                    imageUrl: '',
+                    isUrgent: true,
+                    dietary: []
+                },
+                {
+                    id: 'item5',
+                    name: 'Organic Milk (1L)',
+                    category: 'dairy',
+                    originalPrice: 4.50,
+                    discountedPrice: 2.25,
+                    expiryTime: 'Tomorrow 11:59 PM',
+                    expiryHours: 30,
+                    merchant: 'Organic Store',
+                    distance: 3.2,
+                    description: 'Fresh organic whole milk from local farms.',
+                    imageUrl: '',
+                    isUrgent: false,
+                    dietary: ['vegetarian']
+                },
+                {
+                    id: 'item6',
+                    name: 'Salmon Fillet',
+                    category: 'meat',
+                    originalPrice: 18.00,
+                    discountedPrice: 12.00,
+                    expiryTime: 'Today 7:00 PM',
+                    expiryHours: 3,
+                    merchant: 'Fresh Fish Co',
+                    distance: 2.8,
+                    description: 'Fresh Atlantic salmon fillet, perfect for grilling.',
+                    imageUrl: '',
+                    isUrgent: true,
+                    dietary: []
+                },
+                {
+                    id: 'item7',
+                    name: 'Coffee Beans (250g)',
+                    category: 'beverages',
+                    originalPrice: 15.00,
+                    discountedPrice: 8.00,
+                    expiryTime: 'Next Week',
+                    expiryHours: 168,
+                    merchant: 'Roast Masters',
+                    distance: 1.5,
+                    description: 'Premium single origin coffee beans from Colombia.',
+                    imageUrl: '',
+                    isUrgent: false,
+                    dietary: ['vegetarian', 'vegan']
+                },
+                {
+                    id: 'item8',
+                    name: 'Chocolate Croissants (4pc)',
+                    category: 'bakery',
+                    originalPrice: 12.00,
+                    discountedPrice: 6.00,
+                    expiryTime: 'Tomorrow 10:00 AM',
+                    expiryHours: 14,
+                    merchant: 'French Patisserie',
+                    distance: 1.8,
+                    description: 'Buttery croissants filled with rich dark chocolate.',
+                    imageUrl: '',
+                    isUrgent: false,
+                    dietary: ['vegetarian']
+                }
+            ];
+        }
+                    {
+                        id: 'item1',
+                        name: 'Fresh Sourdough Bread',
+                        category: 'bakery',
+                        originalPrice: 8.50,
+                        discountedPrice: 3.50,
+                        expiryTime: 'Today 6:00 PM',
+                        expiryHours: 2,
+                        merchant: 'Artisan Bakery',
+                        distance: 0.8,
+                        description: 'Freshly baked sourdough bread, perfect for sandwiches or toast.',
+                        imageUrl: '',
+                        isUrgent: true,
+                        dietary: ['vegetarian']
+                    },
+                    {
+                        id: 'item2',
+                        name: 'Mixed Green Salad',
+                        category: 'produce',
+                        originalPrice: 6.50,
+                        discountedPrice: 2.00,
+                        expiryTime: 'Today 8:00 PM',
+                        expiryHours: 4,
+                        merchant: 'Fresh Market',
+                        distance: 1.2,
+                        description: 'Fresh mixed greens with cherry tomatoes and cucumber.',
+                        imageUrl: '',
+                        isUrgent: true,
+                        dietary: ['vegetarian', 'vegan', 'gluten-free']
+                    },
+                    {
+                        id: 'item3',
+                        name: 'Seasonal Fruit Bowl',
+                        category: 'produce',
+                        originalPrice: 12.00,
+                        discountedPrice: 4.00,
+                        expiryTime: 'Tomorrow 2:00 PM',
+                        expiryHours: 18,
+                        merchant: 'Corner Deli',
+                        distance: 2.1,
+                        description: 'Assorted seasonal fruits - apples, oranges, and bananas.',
+                        imageUrl: '',
+                        isUrgent: false,
+                        dietary: ['vegetarian', 'vegan', 'gluten-free']
+                    },
+                    {
+                        id: 'item4',
+                        name: 'Chicken Caesar Wrap',
+                        category: 'prepared',
+                        originalPrice: 9.50,
+                        discountedPrice: 5.50,
+                        expiryTime: 'Today 9:00 PM',
+                        expiryHours: 5,
+                        merchant: 'Quick Eats',
+                        distance: 0.5,
+                        description: 'Grilled chicken, romaine lettuce, parmesan cheese in a flour tortilla.',
+                        imageUrl: '',
+                        isUrgent: true,
+                        dietary: []
+                    },
+                    {
+                        id: 'item5',
+                        name: 'Organic Milk (1L)',
+                        category: 'dairy',
+                        originalPrice: 4.50,
+                        discountedPrice: 2.25,
+                        expiryTime: 'Tomorrow 11:59 PM',
+                        expiryHours: 30,
+                        merchant: 'Organic Store',
+                        distance: 3.2,
+                        description: 'Fresh organic whole milk from local farms.',
+                        imageUrl: '',
+                        isUrgent: false,
+                        dietary: ['vegetarian']
+                    },
+                    {
+                        id: 'item6',
+                        name: 'Salmon Fillet',
+                        category: 'meat',
+                        originalPrice: 18.00,
+                        discountedPrice: 12.00,
+                        expiryTime: 'Today 7:00 PM',
+                        expiryHours: 3,
+                        merchant: 'Fresh Fish Co',
+                        distance: 2.8,
+                        description: 'Fresh Atlantic salmon fillet, perfect for grilling.',
+                        imageUrl: '',
+                        isUrgent: true,
+                        dietary: []
+                    },
+                    {
+                        id: 'item7',
+                        name: 'Coffee Beans (250g)',
+                        category: 'beverages',
+                        originalPrice: 15.00,
+                        discountedPrice: 8.00,
+                        expiryTime: 'Next Week',
+                        expiryHours: 168,
+                        merchant: 'Roast Masters',
+                        distance: 1.5,
+                        description: 'Premium single origin coffee beans from Colombia.',
+                        imageUrl: '',
+                        isUrgent: false,
+                        dietary: ['vegetarian', 'vegan']
+                    },
+                    {
+                        id: 'item8',
+                        name: 'Chocolate Croissants (4pc)',
+                        category: 'bakery',
+                        originalPrice: 12.00,
+                        discountedPrice: 6.00,
+                        expiryTime: 'Tomorrow 10:00 AM',
+                        expiryHours: 14,
+                        merchant: 'French Patisserie',
+                        distance: 1.8,
+                        description: 'Buttery croissants filled with rich dark chocolate.',
+                        imageUrl: '',
+                        isUrgent: false,
+                        dietary: ['vegetarian']
+                    }
+                ];
+                
+                filteredItems = [...allItems];
+                displayItems();
+                updateResultsSummary();
+                
+            } catch (error) {
+                console.error('Error loading items:', error);
+                showAlert('Error loading items', 'danger');
+            }
+        }
+        
+        function displayItems() {
+            const startIndex = currentPage * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const itemsToShow = filteredItems.slice(startIndex, endIndex);
+            
+            if (currentPage === 0) {
+                displayedItems = itemsToShow;
+            } else {
+                displayedItems = displayedItems.concat(itemsToShow);
+            }
+            
+            const itemsHTML = displayedItems.map(item => createItemCard(item)).join('');
+            document.getElementById('itemsGrid').innerHTML = itemsHTML;
+            
+            // Show/hide load more button
+            const loadMoreBtn = document.getElementById('loadMoreBtn');
+            if (endIndex < filteredItems.length) {
+                loadMoreBtn.style.display = 'block';
+            } else {
+                loadMoreBtn.style.display = 'none';
+            }
+        }
+        
+        function createItemCard(item) {
+            const discountPercent = Math.round((1 - item.discountedPrice / item.originalPrice) * 100);
+            const urgentClass = item.isUrgent ? 'background: #fff3cd; border-color: #ffeaa7;' : '';
+            
+            return `
+                <div style="border: 1px solid #ddd; padding: 15px; ${urgentClass} position: relative;">
+                    ${item.isUrgent ? '<div style="position: absolute; top: 10px; right: 10px; background: #dc3545; color: white; padding: 3px 8px; font-size: 0.8em; border-radius: 3px;">URGENT</div>' : ''}
+                    
+                    <div style="height: 120px; background: #f8f9fa; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; color: #666;">
+                        <span style="font-size: 3em;">🍽️</span>
+                    </div>
+                    
+                    <h4 style="margin-bottom: 8px; color: #007bff;">${item.name}</h4>
+                    <p style="color: #666; margin-bottom: 8px; font-size: 0.9em;">${item.merchant} • ${item.distance}km away</p>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <span style="font-size: 1.2em; font-weight: bold; color: #155724;">$${item.discountedPrice.toFixed(2)}</span>
+                        <span style="text-decoration: line-through; color: #999; margin-left: 8px;">$${item.originalPrice.toFixed(2)}</span>
+                        <span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 8px;">${discountPercent}% OFF</span>
+                    </div>
+                    
+                    <p style="color: #666; font-size: 0.9em; margin-bottom: 10px;">
+                        ⏰ Expires: ${item.expiryTime}
+                    </p>
+                    
+                    <p style="font-size: 0.85em; color: #555; margin-bottom: 15px; height: 40px; overflow: hidden;">
+                        ${item.description}
+                    </p>
+                    
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="addToCart('${item.id}')" style="flex: 2; padding: 8px; background: #007bff; color: white; border: none; cursor: pointer;">
+                            Add to Cart
+                        </button>
+                        <button onclick="addToFavourites('${item.id}')" style="flex: 1; padding: 8px; background: #e83e8c; color: white; border: none; cursor: pointer;">
+                            ❤️
+                        </button>
+                        <button onclick="viewItemDetails('${item.id}')" style="flex: 1; padding: 8px; background: #6c757d; color: white; border: none; cursor: pointer;">
+                            Details
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function handleSearch() {
+            const query = document.getElementById('searchQuery').value.toLowerCase();
+            applyFilters();
+        }
+        
+        function handleFilter() {
+            applyFilters();
+        }
+        
+        function handleSort() {
+            const sortBy = document.getElementById('sortBy').value;
+            
+            filteredItems.sort((a, b) => {
+                switch (sortBy) {
+                    case 'expiry':
+                        return a.expiryHours - b.expiryHours;
+                    case 'price-low':
+                        return a.discountedPrice - b.discountedPrice;
+                    case 'price-high':
+                        return b.discountedPrice - a.discountedPrice;
+                    case 'discount':
+                        const discountA = (1 - a.discountedPrice / a.originalPrice) * 100;
+                        const discountB = (1 - b.discountedPrice / b.originalPrice) * 100;
+                        return discountB - discountA;
+                    case 'distance':
+                        return a.distance - b.distance;
+                    default:
+                        return 0;
+                }
+            });
+            
+            currentPage = 0;
+            displayItems();
+        }
+        
+        function applyFilters() {
+            const query = document.getElementById('searchQuery').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+            const maxPrice = document.getElementById('priceFilter').value;
+            const timeFilter = document.getElementById('timeFilter').value;
+            const urgentOnly = document.getElementById('urgentOnly').checked;
+            const nearbyOnly = document.getElementById('nearbyOnly').checked;
+            
+            filteredItems = allItems.filter(item => {
+                // Text search
+                if (query && !item.name.toLowerCase().includes(query) && 
+                    !item.category.toLowerCase().includes(query) && 
+                    !item.merchant.toLowerCase().includes(query)) {
+                    return false;
+                }
+                
+                // Category filter
+                if (category && item.category !== category) {
+                    return false;
+                }
+                
+                // Price filter
+                if (maxPrice && item.discountedPrice > parseFloat(maxPrice)) {
+                    return false;
+                }
+                
+                // Time filter
+                if (timeFilter === 'today' && item.expiryHours > 24) {
+                    return false;
+                }
+                if (timeFilter === 'tomorrow' && (item.expiryHours < 24 || item.expiryHours > 48)) {
+                    return false;
+                }
+                if (timeFilter === 'week' && item.expiryHours > 168) {
+                    return false;
+                }
+                
+                // Urgent filter
+                if (urgentOnly && !item.isUrgent) {
+                    return false;
+                }
+                
+                // Distance filter
+                if (nearbyOnly && item.distance > 5) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            currentPage = 0;
+            displayItems();
+            updateResultsSummary();
+        }
+        
+        function clearFilters() {
+            document.getElementById('searchQuery').value = '';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('priceFilter').value = '';
+            document.getElementById('timeFilter').value = '';
+            document.getElementById('urgentOnly').checked = false;
+            document.getElementById('nearbyOnly').checked = false;
+            document.getElementById('sortBy').value = 'expiry';
+            
+            filteredItems = [...allItems];
+            currentPage = 0;
+            displayItems();
+            updateResultsSummary();
+        }
+        
+        function updateResultsSummary() {
+            const count = filteredItems.length;
+            const totalSavings = filteredItems.reduce((sum, item) => sum + (item.originalPrice - item.discountedPrice), 0);
+            
+            document.getElementById('resultsCount').textContent = `${count} items found`;
+            document.getElementById('totalSavings').textContent = `$${totalSavings.toFixed(2)}`;
+        }
+        
+        function loadMoreItems() {
+            currentPage++;
+            displayItems();
+        }
+        
+        function addToCart(itemId) {
+            const item = allItems.find(i => i.id === itemId);
+            if (!item) return;
+            
+            let cart = JSON.parse(localStorage.getItem('qless_cart') || '[]');
+            
+            // Check if item already in cart
+            const existingItem = cart.find(cartItem => cartItem.id === itemId);
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                cart.push({
+                    id: item.id,
+                    name: item.name,
+                    price: item.discountedPrice,
+                    originalPrice: item.originalPrice,
+                    merchant: item.merchant,
+                    expiryTime: item.expiryTime,
+                    quantity: 1
+                });
+            }
+            
+            localStorage.setItem('qless_cart', JSON.stringify(cart));
+            updateCartCount();
+            showAlert(`${item.name} added to cart!`, 'success');
+        }
+        
+        function viewItemDetails(itemId) {
+            const item = allItems.find(i => i.id === itemId);
+            if (!item) return;
+            
+            document.getElementById('modalItemName').textContent = item.name;
+            
+            const discountPercent = Math.round((1 - item.discountedPrice / item.originalPrice) * 100);
+            const dietaryTags = item.dietary.map(d => `<span style="background: #e9ecef; padding: 2px 6px; border-radius: 3px; font-size: 0.8em; margin-right: 4px;">${d}</span>`).join('');
+            
+            const modalContent = `
+                <div style="margin-bottom: 15px;">
+                    <div style="height: 200px; background: #f8f9fa; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; color: #666;">
+                        <span style="font-size: 4em;">🍽️</span>
+                    </div>
+                    
+                    <h4 style="color: #007bff; margin-bottom: 10px;">${item.merchant}</h4>
+                    <p style="color: #666; margin-bottom: 15px;">${item.distance}km away • ${item.category}</p>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <span style="font-size: 1.5em; font-weight: bold; color: #155724;">$${item.discountedPrice.toFixed(2)}</span>
+                        <span style="text-decoration: line-through; color: #999; margin-left: 10px;">$${item.originalPrice.toFixed(2)}</span>
+                        <span style="background: #28a745; color: white; padding: 4px 8px; border-radius: 3px; font-size: 0.9em; margin-left: 10px;">${discountPercent}% OFF</span>
+                    </div>
+                    
+                    <p style="margin-bottom: 15px;"><strong>Expires:</strong> ${item.expiryTime}</p>
+                    <p style="margin-bottom: 15px;">${item.description}</p>
+                    
+                    ${dietaryTags ? `<div style="margin-bottom: 15px;"><strong>Dietary:</strong><br>${dietaryTags}</div>` : ''}
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button onclick="addToCart('${item.id}'); closeModal();" style="flex: 1; padding: 12px; background: #007bff; color: white; border: none; cursor: pointer;">
+                            Add to Cart
+                        </button>
+                        <button onclick="closeModal()" style="flex: 1; padding: 12px; background: #6c757d; color: white; border: none; cursor: pointer;">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('modalContent').innerHTML = modalContent;
+            document.getElementById('itemModal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('itemModal').style.display = 'none';
+        }
+        
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('qless_cart') || '[]');
+            document.getElementById('cartCount').textContent = cart.length;
+        }
+        
+        function logout() {
+            sessionStorage.removeItem("user_id");
+            sessionStorage.removeItem("user");
+            localStorage.removeItem("qless_cart");
+            window.location.href = "index.html";
+        }
+        
+        function showAlert(message, type) {
+            const alertDiv = document.getElementById('alertMessage');
+            alertDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            alertDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('itemModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

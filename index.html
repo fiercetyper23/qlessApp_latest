@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QLess - Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .text-center {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .text-center h1 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .text-center p {
+            color: #7f8c8d;
+            margin-bottom: 0;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            background-color: #ecf0f1;
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #7f8c8d;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .tab-button:hover {
+            background-color: #34495e;
+            color: white;
+        }
+        
+        .tab-content {
+            background: white;
+            padding: 24px;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .tab-panel {
+            display: none;
+        }
+        
+        .tab-panel.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        button[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+        
+        button[type="submit"]:active {
+            transform: translateY(1px);
+        }
+        
+        .error-message, .success-message {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="text-center">
+        <h1>QLess</h1>
+        <p>The Sustainable Way to Makan</p>
+    </div>
+
+    <!-- Tab Buttons -->
+    <div class="tab-buttons">
+        <button class="tab-button active" onclick="showTab('login')">Login</button>
+        <button class="tab-button" onclick="showTab('register')">Register</button>
+    </div>
+
+    <div class="tab-content">
+        <!-- Login Tab -->
+        <div id="login" class="tab-panel active">
+            <div id="loginMessage"></div>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="loginEmail">Email:</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password:</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+
+        <!-- Register Tab -->
+        <div id="register" class="tab-panel">
+            <div id="registerMessage"></div>
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label for="registerEmail">Email:</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password:</label>
+                    <input type="password" id="registerPassword" required minlength="8">
+                    <small>Password must be at least 8 characters long</small>
+                </div>
+                <button type="submit">Register</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Load AWS Amplify -->
+    <script src="https://unpkg.com/aws-amplify@5.3.14/dist/aws-amplify.umd.min.js"></script>
+    
+    <script>
+        // Configure Amplify
+        const { Amplify, Auth } = window.aws_amplify_core || window.aws_amplify;
+        
+        // Configure Amplify with your Cognito settings
+        Amplify.configure({
+            Auth: {
+                region: 'us-east-1',
+                userPoolId: 'us-east-1_tKaNJikTO',
+                userPoolWebClientId: '7lhfv84qm3fhls4d68fn87qsrn',
+                mandatorySignIn: false,
+                authenticationFlowType: 'USER_SRP_AUTH'
+            }
+        });
+
+        function showMessage(elementId, message, isError = false) {
+            const messageElement = document.getElementById(elementId);
+            messageElement.innerHTML = `<div class="${isError ? 'error-message' : 'success-message'}">${message}</div>`;
+            setTimeout(() => {
+                messageElement.innerHTML = '';
+            }, 5000);
+        }
+
+        function setLoading(formId, isLoading) {
+            const form = document.getElementById(formId);
+            if (isLoading) {
+                form.classList.add('loading');
+            } else {
+                form.classList.remove('loading');
+            }
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            setLoading('registerForm', true);
+
+            const email = document.getElementById("registerEmail").value;
+            const password = document.getElementById("registerPassword").value;
+
+            try {
+                const { user } = await Auth.signUp({
+                    username: email,
+                    password: password,
+                    attributes: {
+                        email: email
+                    }
+                });
+                
+                showMessage('registerMessage', 
+                    'Registration successful! Please check your email for the verification code.');
+                console.log('Registration successful:', user);
+                
+                // Optionally switch to login tab
+                // showTab('login');
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                showMessage('registerMessage', 
+                    `Registration failed: ${error.message}`, true);
+            } finally {
+                setLoading('registerForm', false);
+            }
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            setLoading('loginForm', true);
+
+            const email = document.getElementById("loginEmail").value;
+            const password = document.getElementById("loginPassword").value;
+
+            try {
+                const user = await Auth.signIn(email, password);
+                
+                showMessage('loginMessage', 'Login successful!');
+                console.log('Login successful:', user);
+                
+                // Get the JWT token
+                const session = await Auth.currentSession();
+                const token = session.getAccessToken().getJwtToken();
+                console.log('Access Token:', token);
+                
+                // Redirect or perform next action here
+                // window.location.href = '/dashboard';
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                
+                if (error.code === 'UserNotConfirmedException') {
+                    showMessage('loginMessage', 
+                        'Please verify your email address first. Check your inbox for the verification code.', true);
+                } else if (error.code === 'NotAuthorizedException') {
+                    showMessage('loginMessage', 
+                        'Invalid email or password. Please try again.', true);
+                } else {
+                    showMessage('loginMessage', 
+                        `Login failed: ${error.message}`, true);
+                }
+            } finally {
+                setLoading('loginForm', false);
+            }
+        }
+
+        function showTab(tabId) {
+            const tabs = document.querySelectorAll(".tab-panel");
+            const buttons = document.querySelectorAll(".tab-button");
+            tabs.forEach(tab => tab.classList.remove("active"));
+            buttons.forEach(btn => btn.classList.remove("active"));
+            document.getElementById(tabId).classList.add("active");
+            document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`).classList.add("active");
+        }
+
+        // Check if user is already authenticated on page load
+        window.addEventListener('load', async () => {
+            try {
+                const user = await Auth.currentAuthenticatedUser();
+                console.log('User is already signed in:', user);
+                showMessage('loginMessage', `Welcome back, ${user.attributes.email}!`);
+            } catch (error) {
+                // User is not signed in, which is fine
+                console.log('User is not signed in');
+            }
+        });
+    </script>
+</body>
+</html>

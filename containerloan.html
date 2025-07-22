@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QLess - Container Loans</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <div style="text-align: center; margin-bottom: 20px; padding: 10px; background: #f5f5f5; border-bottom: 1px solid #ccc;">
+        <h2>Container Loan System</h2>
+        <div style="margin-top: 10px;">
+            <a href="dashboard.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">🏠 Home</a>
+            <a href="items.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">🛒 Shop</a>
+            <a href="cart.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">🛍️ Cart (<span id="cartCount">0</span>)</a>
+            <a href="favourites.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">❤️ Favourites</a>
+            <a href="wallet.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">💳 Wallet</a>
+            <a href="containerloan.html" style="margin: 0 8px; text-decoration: none; color: #007bff; font-weight: bold;">📦 Containers</a>
+            <a href="transactions.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">📊 Transactions</a>
+            <a href="profile.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">👤 Profile</a>
+            <a href="notifications.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">🔔 Alerts</a>
+            <a href="#" onclick="logout()" style="margin: 0 8px; text-decoration: none; color: #007bff;">📤 Logout</a>
+        </div>
+    </div>
+
+    <!-- Container Loan Container -->
+    <div style="max-width: 1000px; margin: 20px auto; padding: 20px;">
+        
+        <!-- Alert Messages -->
+        <div id="alertMessage" style="display: none;"></div>
+        
+        <!-- Info Banner -->
+        <div style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 25px; margin-bottom: 30px; border-radius: 10px;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <div style="font-size: 3em;">♻️</div>
+                <div>
+                    <h3 style="margin-bottom: 10px;">Sustainable Container System</h3>
+                    <p style="margin: 0; opacity: 0.9;">Reduce waste by borrowing reusable containers for your food deliveries. Return them to any participating merchant for your deposit back!</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Dashboard -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+            
+            <div style="padding: 20px; border: 1px solid #ccc; text-align: center; background: #f9f9f9; border-radius: 8px;">
+                <h3 style="color: #007bff; margin-bottom: 10px;">Active Loans</h3>
+                <p style="font-size: 2.5em; font-weight: bold; color: #155724; margin: 10px 0;" id="activeLoans">0</p>
+                <small style="color: #666;">Containers on loan</small>
+            </div>
+            
+            <div style="padding: 20px; border: 1px solid #ccc; text-align: center; background: #f9f9f9; border-radius: 8px;">
+                <h3 style="color: #007bff; margin-bottom: 10px;">Total Deposit</h3>
+                <p style="font-size: 2.5em; font-weight: bold; color: #fd7e14; margin: 10px 0;" id="totalDeposit">$0.00</p>
+                <small style="color: #666;">Refundable when returned</small>
+            </div>
+            
+            <div style="padding: 20px; border: 1px solid #ccc; text-align: center; background: #f9f9f9; border-radius: 8px;">
+                <h3 style="color: #007bff; margin-bottom: 10px;">Containers Returned</h3>
+                <p style="font-size: 2.5em; font-weight: bold; color: #28a745; margin: 10px 0;" id="totalReturned">0</p>
+                <small style="color: #666;">Lifetime returns</small>
+            </div>
+            
+            <div style="padding: 20px; border: 1px solid #ccc; text-align: center; background: #f9f9f9; border-radius: 8px;">
+                <h3 style="color: #007bff; margin-bottom: 10px;">Eco Impact</h3>
+                <p style="font-size: 2.5em; font-weight: bold; color: #6f42c1; margin: 10px 0;" id="ecoImpact">0g</p>
+                <small style="color: #666;">Waste prevented</small>
+            </div>
+            
+        </div>
+
+        <!-- Tab Buttons -->
+        <div class="tab-buttons">
+            <button class="tab-button active" onclick="showTab('borrow')">📦 Borrow Container</button>
+            <button class="tab-button" onclick="showTab('active')">🔄 Active Loans</button>
+            <button class="tab-button" onclick="showTab('history')">📋 Loan History</button>
+            <button class="tab-button" onclick="showTab('return')">📤 Return Container</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            
+            <!-- Borrow Container Tab -->
+            <div id="borrow" class="tab-panel active">
+                <h4 style="color: #007bff; margin-bottom: 20px;">📦 Borrow a Container</h4>
+                
+                <!-- Container Types -->
+                <div style="margin-bottom: 30px;">
+                    <h5 style="margin-bottom: 15px;">Available Container Types:</h5>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;" id="containerTypes">
+                        <!-- Container types loaded via JavaScript -->
+                    </div>
+                </div>
+                
+                <form id="borrowForm" onsubmit="return handleBorrowContainer(event)">
+                    
+                    <div class="form-group">
+                        <label for="containerType">Container Type:</label>
+                        <select id="containerType" required onchange="updateDepositAmount()">
+                            <option value="">Select container type...</option>
+                            <option value="small" data-deposit="2.00">Small Bowl ($2.00 deposit)</option>
+                            <option value="medium" data-deposit="3.00">Medium Container ($3.00 deposit)</option>
+                            <option value="large" data-deposit="5.00">Large Container ($5.00 deposit)</option>
+                            <option value="thermal" data-deposit="8.00">Thermal Bag ($8.00 deposit)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quantity">Quantity:</label>
+                        <input type="number" id="quantity" min="1" max="5" value="1" required onchange="updateDepositAmount()">
+                        <small style="color: #666; font-size: 0.8em;">Maximum 5 containers per loan</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pickupLocation">Pickup Location:</label>
+                        <select id="pickupLocation" required>
+                            <option value="">Select pickup location...</option>
+                            <option value="merchant1">Fresh Market - Orchard Road</option>
+                            <option value="merchant2">Artisan Bakery - Raffles Place</option>
+                            <option value="merchant3">Corner Deli - Marina Bay</option>
+                            <option value="warehouse">QLess Warehouse - Jurong</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="plannedReturn">Planned Return Date:</label>
+                        <input type="date" id="plannedReturn" required>
+                        <small style="color: #666; font-size: 0.8em;">Maximum loan period: 14 days</small>
+                    </div>
+                    
+                    <!-- Loan Summary -->
+                    <div id="borrowSummary" style="background: #f8f9fa; padding: 15px; margin: 20px 0; border-radius: 5px; display: none;">
+                        <h5 style="color: #007bff; margin-bottom: 15px;">Loan Summary</h5>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Container Type:</span>
+                            <span id="summaryType">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Quantity:</span>
+                            <span id="summaryQuantity">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Deposit per item:</span>
+                            <span id="summaryDepositEach">$0.00</span>
+                        </div>
+                        <hr style="margin: 10px 0;">
+                        <div style="display: flex; justify-content: space-between; font-weight: bold; color: #fd7e14;">
+                            <span>Total Deposit:</span>
+                            <span id="summaryTotalDeposit">$0.00</span>
+                        </div>
+                        <div style="margin-top: 10px; padding: 10px; background: #e7f3ff; border-radius: 4px;">
+                            <small style="color: #0066cc;">💡 Deposit will be fully refunded when containers are returned in good condition</small>
+                        </div>
+                    </div>
+                    
+                    <button type="submit">
+                        <span class="loading" style="display: none;">Processing Loan...</span>
+                        <span class="normal">📦 Borrow Container(s)</span>
+                    </button>
+                    
+                </form>
+            </div>
+
+            <!-- Active Loans Tab -->
+            <div id="active" class="tab-panel">
+                <h4 style="color: #007bff; margin-bottom: 20px;">🔄 Your Active Loans</h4>
+                
+                <div id="activeLoansContainer">
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <p>Loading active loans...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="history" class="tab-panel">
+                <h4 style="color: #007bff; margin-bottom: 20px;">📋 Loan History</h4>
+                
+                <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+                    <select id="historyFilter" onchange="filterLoanHistory()">
+                        <option value="all">All Loans</option>
+                        <option value="completed">Completed</option>
+                        <option value="overdue">Overdue</option>
+                        <option value="active">Active</option>
+                    </select>
+                    <button onclick="loadLoanHistory()" style="background: #6c757d; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Refresh</button>
+                </div>
+                
+                <div id="loanHistoryContainer">
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <p>Loading loan history...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Return Container Tab -->
+            <div id="return" class="tab-panel">
+                <h4 style="color: #007bff; margin-bottom: 20px;">📤 Return Container</h4>
+                
+                <div style="background: #fff3cd; padding: 15px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #ffeaa7;">
+                    <strong>📋 Return Instructions:</strong>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>Clean containers thoroughly before returning</li>
+                        <li>Return to any participating QLess merchant</li>
+                        <li>Scan QR code or provide loan ID to merchant</li>
+                        <li>Receive deposit refund immediately</li>
+                    </ul>
+                </div>
+                
+                <form id="returnForm" onsubmit="return handleReturnContainer(event)">
+                    
+                    <div class="form-group">
+                        <label for="returnLoanId">Select Container to Return:</label>
+                        <select id="returnLoanId" required>
+                            <option value="">Select active loan...</option>
+                            <!-- Options loaded via JavaScript -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="returnLocation">Return Location:</label>
+                        <select id="returnLocation" required>
+                            <option value="">Select return location...</option>
+                            <option value="merchant1">Fresh Market - Orchard Road</option>
+                            <option value="merchant2">Artisan Bakery - Raffles Place</option>
+                            <option value="merchant3">Corner Deli - Marina Bay</option>
+                            <option value="warehouse">QLess Warehouse - Jurong</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="containerCondition">Container Condition:</label>
+                        <select id="containerCondition" required>
+                            <option value="">Select condition...</option>
+                            <option value="excellent">Excellent - Like new</option>
+                            <option value="good">Good - Minor wear</option>
+                            <option value="fair">Fair - Some damage</option>
+                            <option value="poor">Poor - Significant damage</option>
+                        </select>
+                        <small style="color: #666; font-size: 0.8em;">Damaged containers may incur cleaning/replacement fees</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="returnNotes">Additional Notes (Optional):</label>
+                        <textarea id="returnNotes" rows="3" placeholder="Any additional information about the container condition or return..."></textarea>
+                    </div>
+                    
+                    <!-- Return Summary -->
+                    <div id="returnSummary" style="background: #f8f9fa; padding: 15px; margin: 20px 0; border-radius: 5px; display: none;">
+                        <h5 style="color: #007bff; margin-bottom: 15px;">Return Summary</h5>
+                        <div id="returnDetails">
+                            <!-- Details loaded via JavaScript when loan is selected -->
+                        </div>
+                    </div>
+                    
+                    <button type="submit">
+                        <span class="loading" style="display: none;">Processing Return...</span>
+                        <span class="normal">📤 Process Return</span>
+                    </button>
+                    
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://djkzzr6w1g.execute-api.us-east-1.amazonaws.com/default';
+        let activeLoans = [];
+        let loanHistory = [];
+        
+        window.addEventListener('load', function() {
+            checkAuthentication();
+            loadContainerData();
+            updateCartCount();
+            setMinReturnDate();
+        });
+        
+        function checkAuthentication() {
+            const userId = sessionStorage.getItem("user_id");
+            if (!userId) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+        
+        function setMinReturnDate() {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const maxDate = new Date();
+            maxDate.setDate(maxDate.getDate() + 14);
+            
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+            const maxDateStr = maxDate.toISOString().split('T')[0];
+            
+            document.getElementById('plannedReturn').min = tomorrowStr;
+            document.getElementById('plannedReturn').max = maxDateStr;
+            document.getElementById('plannedReturn').value = tomorrowStr;
+        }
+        
+        // Tab switching
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-panel');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'active') {
+                loadActiveLoans();
+            } else if (tabName === 'history') {
+                loadLoanHistory();
+            } else if (tabName === 'return') {
+                loadReturnOptions();
+            }
+        }
+        
+        async function loadContainerData() {
+            await loadUserStats();
+            loadContainerTypes();
+        }
+        
+        async function loadUserStats() {
+            const userId = sessionStorage.getItem("user_id");
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/containerloan/${userId}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const loans = data.loans || [];
+                    
+                    const active = loans.filter(loan => loan.status === 'active').length;
+                    const totalDeposit = loans.filter(loan => loan.status === 'active')
+                        .reduce((sum, loan) => sum + (loan.deposit || 0), 0);
+                    const totalReturned = loans.filter(loan => loan.status === 'returned').length;
+                    
+                    document.getElementById('activeLoans').textContent = active;
+                    document.getElementById('totalDeposit').textContent = `$${totalDeposit.toFixed(2)}`;
+                    document.getElementById('totalReturned').textContent = totalReturned;
+                    document.getElementById('ecoImpact').textContent = `${(totalReturned * 25)}g`; // Assume 25g waste prevented per container
+                    
+                    activeLoans = loans.filter(loan => loan.status === 'active');
+                    loanHistory = loans;
+                } else {
+                    // No loans yet
+                    document.getElementById('activeLoans').textContent = '0';
+                    document.getElementById('totalDeposit').textContent = '$0.00';
+                    document.getElementById('totalReturned').textContent = '0';
+                    document.getElementById('ecoImpact').textContent = '0g';
+                }
+            } catch (error) {
+                console.error('Error loading container stats:', error);
+            }
+        }
+        
+        function loadContainerTypes() {
+            const containerTypesHTML = `
+                <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2.5em; margin-bottom: 10px;">🥣</div>
+                    <h5 style="color: #007bff;">Small Bowl</h5>
+                    <p style="color: #666; font-size: 0.9em; margin: 5px 0;">Perfect for soups, rice, small portions</p>
+                    <p style="font-weight: bold; color: #fd7e14;">$2.00 deposit</p>
+                </div>
+                <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2.5em; margin-bottom: 10px;">📦</div>
+                    <h5 style="color: #007bff;">Medium Container</h5>
+                    <p style="color: #666; font-size: 0.9em; margin: 5px 0;">Great for main dishes, salads</p>
+                    <p style="font-weight: bold; color: #fd7e14;">$3.00 deposit</p>
+                </div>
+                <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2.5em; margin-bottom: 10px;">🍱</div>
+                    <h5 style="color: #007bff;">Large Container</h5>
+                    <p style="color: #666; font-size: 0.9em; margin: 5px 0;">Family meals, multiple items</p>
+                    <p style="font-weight: bold; color: #fd7e14;">$5.00 deposit</p>
+                </div>
+                <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2.5em; margin-bottom: 10px;">🎒</div>
+                    <h5 style="color: #007bff;">Thermal Bag</h5>
+                    <p style="color: #666; font-size: 0.9em; margin: 5px 0;">Keep food hot/cold during delivery</p>
+                    <p style="font-weight: bold; color: #fd7e14;">$8.00 deposit</p>
+                </div>
+            `;
+            document.getElementById('containerTypes').innerHTML = containerTypesHTML;
+        }
+        
+        function updateDepositAmount() {
+            const containerSelect = document.getElementById('containerType');
+            const quantity = parseInt(document.getElementById('quantity').value) || 1;
+            
+            if (containerSelect.value) {
+                const selectedOption = containerSelect.options[containerSelect.selectedIndex];
+                const depositPerItem = parseFloat(selectedOption.dataset.deposit) || 0;
+                const totalDeposit = depositPerItem * quantity;
+                
+                document.getElementById('summaryType').textContent = selectedOption.text.split(' (')[0];
+                document.getElementById('summaryQuantity').textContent = quantity;
+                document.getElementById('summaryDepositEach').textContent = `$${depositPerItem.toFixed(2)}`;
+                document.getElementById('summaryTotalDeposit').textContent = `$${totalDeposit.toFixed(2)}`;
+                document.getElementById('borrowSummary').style.display = 'block';
+            } else {
+                document.getElementById('borrowSummary').style.display = 'none';
+            }
+        }
+        
+        async function handleBorrowContainer(event) {
+            event.preventDefault();
+            
+            const userId = sessionStorage.getItem("user_id");
+            const containerType = document.getElementById('containerType').value;
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const pickupLocation = document.getElementById('pickupLocation').value;
+            const plannedReturn = document.getElementById('plannedReturn').value;
+            
+            const selectedOption = document.getElementById('containerType').options[document.getElementById('containerType').selectedIndex];
+            const depositPerItem = parseFloat(selectedOption.dataset.deposit) || 0;
+            const totalDeposit = depositPerItem * quantity;
+            
+            showLoading('borrow');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/containerloan`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        container_type: containerType,
+                        quantity: quantity,
+                        pickup_location: pickupLocation,
+                        planned_return_date: plannedReturn,
+                        deposit_amount: totalDeposit,
+                        status: 'active'
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    hideLoading('borrow');
+                    showAlert(`Container loan registered! Loan ID: ${result.loan_id}`, 'success');
+                    document.getElementById('borrowForm').reset();
+                    document.getElementById('borrowSummary').style.display = 'none';
+                    loadUserStats();
+                } else {
+                    hideLoading('borrow');
+                    showAlert('Failed to register container loan. Please try again.', 'danger');
+                }
+            } catch (error) {
+                hideLoading('borrow');
+                console.error('Container loan error:', error);
+                showAlert('Error registering container loan. Please try again.', 'danger');
+            }
+            
+            return false;
+        }
+        
+        async function loadActiveLoans() {
+            const userId = sessionStorage.getItem("user_id");
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/containerloan/${userId}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const loans = data.loans || [];
+                    const activeLoans = loans.filter(loan => loan.status === 'active');
+                    
+                    displayActiveLoans(activeLoans);
+                } else {
+                    document.getElementById('activeLoansContainer').innerHTML = 
+                        '<div style="text-align: center; padding: 40px; color: #666;"><p>No active loans found</p></div>';
+                }
+            } catch (error) {
+                console.error('Error loading active loans:', error);
+                document.getElementById('activeLoansContainer').innerHTML = 
+                    '<div style="text-align: center; padding: 40px; color: #666;"><p>Error loading active loans</p></div>';
+            }
+        }
+        
+        function displayActiveLoans(loans) {
+            if (loans.length === 0) {
+                document.getElementById('activeLoansContainer').innerHTML = 
+                    '<div style="text-align: center; padding: 40px; color: #666;"><p>No active loans</p><button onclick="showTab(\'borrow\')" style="background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px;">Borrow a Container</button></div>';
+                return;
+            }
+            
+            const loansHTML = loans.map(loan => {
+                const loanDate = new Date(loan.loan_date);
+                const returnDate = new Date(loan.planned_return_date);
+                const daysLeft = Math.ceil((returnDate - new Date()) / (1000 * 60 * 60 * 24));
+                const isOverdue = daysLeft < 0;
+                
+                return `
+                    <div style="border: 1px solid #ddd; padding: 20px; margin-bottom: 15px; border-radius: 8px; ${isOverdue ? 'border-color: #dc3545; background: #fff5f5;' : ''}">
+                        <div style="display: flex; justify-content: between; align-items: start;">
+                            <div style="flex: 1;">
+                                <h5 style="color: #007bff; margin-bottom: 10px;">Loan #${loan.loan_id}</h5>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 15px;">
+                                    <div>
+                                        <strong>Container:</strong><br>
+                                        ${loan.container_type} (×${loan.quantity})
+                                    </div>
+                                    <div>
+                                        <strong>Deposit:</strong><br>
+                                        $${loan.deposit_amount?.toFixed(2) || '0.00'}
+                                    </div>
+                                    <div>
+                                        <strong>Pickup Location:</strong><br>
+                                        ${loan.pickup_location}
+                                    </div>
+                                    <div>
+                                        <strong>Due Date:</strong><br>
+                                        ${returnDate.toLocaleDateString()}
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    ${isOverdue ? 
+                                        `<span style="background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 3px; font-weight: bold;">⚠️ OVERDUE (${Math.abs(daysLeft)} days)</span>` :
+                                        daysLeft <= 2 ? 
+                                            `<span style="background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 3px; font-weight: bold;">⏰ Due in ${daysLeft} day(s)</span>` :
+                                            `<span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 3px;">${daysLeft} days remaining</span>`
+                                    }
+                                </div>
+                            </div>
+                            
+                            <div style="text-align: right; margin-left: 20px;">
+                                <button onclick="extendLoan('${loan.loan_id}')" style="background: #fd7e14; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 8px; display: block; width: 100%;">
+                                    📅 Extend
+                                </button>
+                                <button onclick="returnLoanFromActive('${loan.loan_id}')" style="background: #28a745; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; display: block; width: 100%;">
+                                    📤 Return
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('activeLoansContainer').innerHTML = loansHTML;
+        }
+        
+        async function extendLoan(loanId) {
+            const newReturnDate = prompt('Enter new return date (YYYY-MM-DD):');
+            if (!newReturnDate) return;
+            
+            const userId = sessionStorage.getItem("user_id");
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/containerloan/${userId}/${loanId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        planned_return_date: newReturnDate,
+                        status: 'active'
+                    })
+                });
+                
+                if (response.ok) {
+                    showAlert('Loan extended successfully!', 'success');
+                    loadActiveLoans();
+                } else {
+                    showAlert('Failed to extend loan', 'danger');
+                }
+            } catch (error) {
+                console.error('Error extending loan:', error);
+                showAlert('Error extending loan', 'danger');
+            }
+        }
+        
+        function returnLoanFromActive(loanId) {
+            showTab('return');
+            // Pre-select the loan in return form
+            setTimeout(() => {
+                const returnSelect = document.getElementById('returnLoanId');
+                if (returnSelect) {
+                    returnSelect.value = loanId;
+                    updateReturnSummary();
+                }
+            }, 500);
+        }
+        
+        async function loadReturnOptions() {
+            const userId = sessionStorage.getItem("user_id");
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/containerloan/${userId}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const loans = data.loans || [];
+                    const activeLoans = loans.filter(loan => loan.status === 'active');
+                    
+                    const returnSelect = document.getElementById('returnLoanId');
+                    returnSelect.innerHTML = '<option value="">Select active loan...</option>';
+                    
+                    activeLoans.forEach(loan => {
+                        const option = document.createElement('option');
+                        option.value = loan.loan_id;
+                        option.textContent = `Loan #${loan.loan_id} - ${loan.container_type} (×${loan.quantity})`;
+                        option.dataset.loan = JSON.stringify(loan);
+                        returnSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading return options:', error);
+            }
+        }
+        
+        // Event listener for loan selection in return form
+        document.getElementById('returnLoanId').addEventListener('change', updateReturnSummary);
+        
+        function updateReturnSummary() {
+            const returnSelect = document.getElementById('returnLoanId');
+            const selectedOption = returnSelect.options[returnSelect.selectedIndex];
+            
+            if (selectedOption.value && selectedOption.dataset.loan) {
+                const loan = JSON.parse(selectedOption.dataset.loan);
+                
+                const summaryHTML = `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Container Type:</span>
+                        <span>${loan.container_type}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Quantity:</span>
+                        <span>${loan.quantity}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Loan Date:</span>
+                        <span>${new Date(loan.loan_date).toLocaleDateString()}</span>
+                    </div>
+                    <hr style="margin: 10px 0;">
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; color: #28a745;">
+                        <span>Deposit Refund:</span>
+                        <span>$${loan.deposit_amount?.toFixed(2) || '0.00'}</span>
+                    </div>
+                `;
+                
+                document.getElementById('returnDetails').innerHTML = summaryHTML;
+                document.getElementById('returnSummary').style.display = 'block';
+            } else {
+                document.getElementById('returnSummary').style.display = 'none';
+            }
+        }
+        
+        async function handleReturnContainer(event) {
+            event.preventDefault();
+            
+            const userId = sessionStorage.getItem("user_id");
+            const loanId = document.getElementById('returnLoanId').value;
+            const returnLocation = document.getElementById('returnLocation').value;
+            const condition = document.getElementById('containerCondition').value;
+            const notes = document.getElementById('returnNotes').value;
+            
+            showLoading('return');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/containerloan/${userId}/${loanId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        status: 'returned',
+                        return_location: returnLocation,
+                        return_date: new Date().toISOString(),
+                        container_condition: condition,
+                        return_notes: notes
+                    })
+                });
+                
+                if (response.ok) {
+                    hideLoading('return');
+                    showAlert('Container returned successfully! Deposit refunded.', 'success');
+                    document.getElementById('returnForm').reset();
+                    document.getElementById('returnSummary').style.display = 'none';
+                    loadUserStats();
+                    loadReturnOptions();
+                } else {
+                    hideLoading('return');
+                    showAlert('Failed to process return. Please try again.', 'danger');
+                }
+            } catch (error) {
+                hideLoading('return');
+                console.error('Return processing error:', error);
+                showAlert('Error processing return. Please try again.', 'danger');
+            }
+            
+            return false;
+        }
+        
+        async function loadLoanHistory() {
+            const userId = sessionStorage.getItem("user_id");
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/containerloan/${userId}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    loanHistory = data.loans || [];
+                    displayLoanHistory(loanHistory);
+                } else {
+                    document.getElementById('loanHistoryContainer').innerHTML = 
+                        '<div style="text-align: center; padding: 40px; color: #666;"><p>No loan history found</p></div>';
+                }
+            } catch (error) {
+                console.error('Error loading loan history:', error);
+                document.getElementById('loanHistoryContainer').innerHTML = 
+                    '<div style="text-align: center; padding: 40px; color: #666;"><p>Error loading loan history</p></div>';
+            }
+        }
+        
+        function displayLoanHistory(loans) {
+            if (loans.length === 0) {
+                document.getElementById('loanHistoryContainer').innerHTML = 
+                    '<div style="text-align: center; padding: 40px; color: #666;"><p>No loan history</p></div>';
+                return;
+            }
+            
+            const historyHTML = loans.map(loan => {
+                const statusColor = loan.status === 'active' ? '#007bff' : loan.status === 'returned' ? '#28a745' : '#dc3545';
+                const statusIcon = loan.status === 'active' ? '🔄' : loan.status === 'returned' ? '✅' : '❌';
+                
+                return `
+                    <div style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 5px;">
+                        <div style="display: flex; justify-content: between; align-items: start;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                    <strong style="color: #007bff;">Loan #${loan.loan_id}</strong>
+                                    <span style="background: ${statusColor}; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8em;">
+                                        ${statusIcon} ${loan.status.toUpperCase()}
+                                    </span>
+                                </div>
+                                
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; font-size: 0.9em; color: #666;">
+                                    <div><strong>Type:</strong> ${loan.container_type}</div>
+                                    <div><strong>Quantity:</strong> ${loan.quantity}</div>
+                                    <div><strong>Deposit:</strong> $${loan.deposit_amount?.toFixed(2)}</div>
+                                    <div><strong>Loan Date:</strong> ${new Date(loan.loan_date).toLocaleDateString()}</div>
+                                    ${loan.return_date ? `<div><strong>Returned:</strong> ${new Date(loan.return_date).toLocaleDateString()}</div>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('loanHistoryContainer').innerHTML = historyHTML;
+        }
+        
+        function filterLoanHistory() {
+            const filter = document.getElementById('historyFilter').value;
+            
+            let filteredLoans = loanHistory;
+            if (filter !== 'all') {
+                filteredLoans = loanHistory.filter(loan => loan.status === filter);
+            }
+            
+            displayLoanHistory(filteredLoans);
+        }
+        
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('qless_cart') || '[]');
+            document.getElementById('cartCount').textContent = cart.length;
+        }
+        
+        function logout() {
+            sessionStorage.removeItem("user_id");
+            sessionStorage.removeItem("user");
+            localStorage.removeItem("qless_cart");
+            window.location.href = "index.html";
+        }
+        
+        // Utility functions
+        function showAlert(message, type) {
+            const alertDiv = document.getElementById('alertMessage');
+            alertDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            alertDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        function showLoading(formType) {
+            const form = document.getElementById(formType + 'Form');
+            const loadingSpan = form.querySelector('.loading');
+            const normalSpan = form.querySelector('.normal');
+            
+            if (loadingSpan && normalSpan) {
+                loadingSpan.style.display = 'inline';
+                normalSpan.style.display = 'none';
+            }
+        }
+        
+        function hideLoading(formType) {
+            const form = document.getElementById(formType + 'Form');
+            const loadingSpan = form.querySelector('.loading');
+            const normalSpan = form.querySelector('.normal');
+            
+            if (loadingSpan && normalSpan) {
+                loadingSpan.style.display = 'none';
+                normalSpan.style.display = 'inline';
+            }
+        }
+    </script>
+</body>
+</html>

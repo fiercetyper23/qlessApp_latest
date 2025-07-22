@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QLess - Profile</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <div style="text-align: center; margin-bottom: 20px; padding: 10px; background: #f5f5f5;">
+        <a href="index.html" style="margin: 0 15px; text-decoration: none; color: #007bff;">Home</a>
+        <a href="profile.html" style="margin: 0 15px; text-decoration: none; color: #007bff;">Profile</a>
+        <a href="#" onclick="logout()" style="margin: 0 15px; text-decoration: none; color: #007bff;">Logout</a>
+    </div>
+
+    <!-- Profile Container -->
+    <div style="max-width: 500px; margin: 20px auto; padding: 20px; border: 1px solid #ccc;">
+        
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
+            <h1>QLess Profile</h1>
+            <div id="profilePictureContainer">
+                <div style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #ccc; background: #f5f5f5; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #666;">
+                    <span id="userInitials">👤</span>
+                </div>
+            </div>
+            <h3 id="userName">Loading...</h3>
+            <p style="color: #666;" id="userEmail">Loading...</p>
+        </div>
+
+        <!-- Alert Messages -->
+        <div id="alertMessage" style="display: none;"></div>
+
+        <!-- Profile Form -->
+        <form id="profileForm" onsubmit="return handleUpdateProfile(event)">
+            
+            <div class="form-group">
+                <label for="userId">User ID:</label>
+                <input type="text" id="userId" style="background: #f9f9f9; color: #666;" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label for="profileName">Name:</label>
+                <input type="text" id="profileName" style="background: #f9f9f9; color: #666;" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label for="profileEmail">Email:</label>
+                <input type="email" id="profileEmail" style="background: #f9f9f9; color: #666;" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label for="profilePicture">Profile Picture URL:</label>
+                <input type="url" id="profilePicture" placeholder="Enter image URL (optional)">
+                <small style="color: #666; font-size: 0.8em;">Enter a URL to your profile picture</small>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" style="flex: 1; background: #6c757d;" onclick="cancelEdit()">Cancel</button>
+                <button type="submit" style="flex: 1;">
+                    <span class="loading" style="display: none;">Updating...</span>
+                    <span class="normal">Update Profile</span>
+                </button>
+            </div>
+            
+        </form>
+        
+        <!-- Profile Picture Preview -->
+        <div style="margin-top: 20px;">
+            <label>Profile Picture Preview:</label>
+            <div id="picturePreview" style="text-align: center; margin-top: 10px;">
+                <div style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #ccc; background: #f5f5f5; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #666;">
+                    <span>👤</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var currentUser = null;
+        
+        // Load user profile on page load
+        window.addEventListener('load', function() {
+            checkAuthentication();
+            loadUserProfile();
+        });
+        
+        function checkAuthentication() {
+            var userId = sessionStorage.getItem("user_id");
+            if (!userId) {
+                window.location.href = 'auth.html';
+                return false;
+            }
+            return true;
+        }
+        
+        function loadUserProfile() {
+            var userId = sessionStorage.getItem("user_id");
+            if (!userId) return;
+            
+            fetch('https://djkzzr6w1g.execute-api.us-east-1.amazonaws.com/api/users/' + userId, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(function(response) {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Failed to load profile');
+                }
+            })
+            .then(function(user) {
+                currentUser = user;
+                displayUserProfile(user);
+            })
+            .catch(function(error) {
+                console.error('Error loading profile:', error);
+                showAlert('Error loading profile', 'danger');
+            });
+        }
+        
+        function displayUserProfile(user) {
+            // Update header
+            document.getElementById('userName').textContent = user.name;
+            document.getElementById('userEmail').textContent = user.email;
+            
+            // Update form fields
+            document.getElementById('userId').value = user.user_id;
+            document.getElementById('profileName').value = user.name;
+            document.getElementById('profileEmail').value = user.email;
+            document.getElementById('profilePicture').value = user.profile_picture || '';
+            
+            // Update profile picture
+            updateProfilePictureDisplay(user.profile_picture, user.name);
+            
+            // Set user initials
+            var initials = user.name.split(' ').map(function(n) { return n[0]; }).join('').toUpperCase();
+            document.getElementById('userInitials').textContent = initials;
+        }
+        
+        function updateProfilePictureDisplay(pictureUrl, userName) {
+            var headerContainer = document.getElementById('profilePictureContainer');
+            var previewContainer = document.getElementById('picturePreview');
+            
+            if (pictureUrl && pictureUrl.trim() !== '') {
+                // Show actual image
+                headerContainer.innerHTML = '<img src="' + pictureUrl + '" alt="Profile Picture" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #007bff; object-fit: cover;" onerror="handleImageError(this, \'' + userName + '\')">';
+                previewContainer.innerHTML = '<img src="' + pictureUrl + '" alt="Profile Picture" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #007bff; object-fit: cover;" onerror="handleImageError(this, \'' + userName + '\')">';
+            } else {
+                // Show placeholder
+                var initials = userName ? userName.split(' ').map(function(n) { return n[0]; }).join('').toUpperCase() : '👤';
+                headerContainer.innerHTML = '<div style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #ccc; background: #f5f5f5; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #666;"><span>' + initials + '</span></div>';
+                previewContainer.innerHTML = '<div style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #ccc; background: #f5f5f5; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #666;"><span>' + initials + '</span></div>';
+            }
+        }
+        
+        function handleImageError(img, userName) {
+            var initials = userName ? userName.split(' ').map(function(n) { return n[0]; }).join('').toUpperCase() : '👤';
+            img.parentElement.innerHTML = '<div style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #ccc; background: #f5f5f5; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #666;"><span>' + initials + '</span></div>';
+        }
+        
+        // Preview profile picture as user types
+        document.getElementById('profilePicture').addEventListener('input', function() {
+            var url = this.value;
+            var userName = currentUser ? currentUser.name : '';
+            updateProfilePictureDisplay(url, userName);
+        });
+        
+        function handleUpdateProfile(event) {
+            event.preventDefault();
+            
+            var userId = sessionStorage.getItem("user_id");
+            var profilePictureUrl = document.getElementById('profilePicture').value;
+            
+            showLoading();
+            
+            fetch('https://djkzzr6w1g.execute-api.us-east-1.amazonaws.com/api/users/' + userId + '/profile-picture', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    profile_picture: profilePictureUrl
+                })
+            })
+            .then(function(response) {
+                return response.json().then(function(result) {
+                    if (response.ok && result.message === "Profile picture updated") {
+                        hideLoading();
+                        showAlert('Profile updated successfully!', 'success');
+                        
+                        // Update current user object
+                        if (currentUser) {
+                            currentUser.profile_picture = profilePictureUrl;
+                        }
+                        
+                        // Refresh the display
+                        updateProfilePictureDisplay(profilePictureUrl, currentUser.name);
+                    } else {
+                        hideLoading();
+                        showAlert('Failed to update profile', 'danger');
+                    }
+                });
+            })
+            .catch(function(error) {
+                hideLoading();
+                console.error('Error updating profile:', error);
+                showAlert('Error updating profile', 'danger');
+            });
+            
+            return false;
+        }
+        
+        function cancelEdit() {
+            if (currentUser) {
+                document.getElementById('profilePicture').value = currentUser.profile_picture || '';
+                updateProfilePictureDisplay(currentUser.profile_picture, currentUser.name);
+            }
+        }
+        
+        function logout() {
+            sessionStorage.removeItem("user_id");
+            sessionStorage.removeItem("user");
+            window.location.href = "auth.html";
+        }
+        
+        // Utility functions
+        function showAlert(message, type) {
+            var alertDiv = document.getElementById('alertMessage');
+            alertDiv.innerHTML = '<div class="alert alert-' + type + '">' + message + '</div>';
+            alertDiv.style.display = 'block';
+            
+            setTimeout(function() {
+                alertDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        function showLoading() {
+            var form = document.getElementById('profileForm');
+            var loadingSpan = form.querySelector('.loading');
+            var normalSpan = form.querySelector('.normal');
+            
+            loadingSpan.style.display = 'inline';
+            normalSpan.style.display = 'none';
+        }
+        
+        function hideLoading() {
+            var form = document.getElementById('profileForm');
+            var loadingSpan = form.querySelector('.loading');
+            var normalSpan = form.querySelector('.normal');
+            
+            loadingSpan.style.display = 'none';
+            normalSpan.style.display = 'inline';
+        }
+    </script>
+</body>
+</html>

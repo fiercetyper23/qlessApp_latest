@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QLess - Notifications</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <div style="text-align: center; margin-bottom: 20px; padding: 10px; background: #f5f5f5; border-bottom: 1px solid #ccc;">
+        <h2>Notification Center</h2>
+        <div style="margin-top: 10px;">
+            <a href="dashboard.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">🏠 Home</a>
+            <a href="items.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">🛒 Shop</a>
+            <a href="cart.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">🛍️ Cart (<span id="cartCount">0</span>)</a>
+            <a href="favourites.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">❤️ Favourites</a>
+            <a href="wallet.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">💳 Wallet</a>
+            <a href="containerloan.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">📦 Containers</a>
+            <a href="transactions.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">📊 Transactions</a>
+            <a href="profile.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">👤 Profile</a>
+            <a href="notifications.html" style="margin: 0 8px; text-decoration: none; color: #007bff; font-weight: bold;">🔔 Alerts</a>
+            <a href="#" onclick="logout()" style="margin: 0 8px; text-decoration: none; color: #007bff;">📤 Logout</a>
+        </div>
+    </div>
+
+    <!-- Notifications Container -->
+    <div style="max-width: 1000px; margin: 20px auto; padding: 20px;">
+        
+        <!-- Alert Messages -->
+        <div id="alertMessage" style="display: none;"></div>
+        
+        <!-- Notification Overview -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+            
+            <div style="padding: 20px; border: 1px solid #ccc; text-align: center; background: linear-gradient(135deg, #dc3545, #c82333); color: white; border-radius: 8px;">
+                <h3 style="margin-bottom: 10px; opacity: 0.9;">Unread</h3>
+                <p style="font-size: 2.5em; font-weight: bold; margin: 10px 0;" id="unreadCount">0</p>
+                <small style="opacity: 0.8;">New notifications</small>
+            </div>
+            
+            <div style="padding: 20px; border: 1px solid #ccc; text-align: center; background: linear-gradient(135deg, #007bff, #0056b3); color: white; border-radius: 8px;">
+                <h3 style="margin-bottom: 10px; opacity: 0.9;">Today</h3>
+                <p style="font-size: 2.5em; font-weight: bold; margin: 10px 0;" id="todayCount">0</p>
+                <small style="opacity: 0.8;">Notifications today</small>
+            </div>
+            
+            <div style="padding: 20px; border: 1px solid #ccc; text-align: center; background: linear-gradient(135deg, #28a745, #218838); color: white; border-radius: 8px;">
+                <h3 style="margin-bottom: 10px; opacity: 0.9;">Total</h3>
+                <p style="font-size: 2.5em; font-weight: bold; margin: 10px 0;" id="totalCount">0</p>
+                <small style="opacity: 0.8;">All notifications</small>
+            </div>
+            
+        </div>
+
+        <!-- Tab Buttons -->
+        <div class="tab-buttons">
+            <button class="tab-button active" onclick="showTab('inbox')">📨 Inbox</button>
+            <button class="tab-button" onclick="showTab('send')">📤 Send Notification</button>
+            <button class="tab-button" onclick="showTab('settings')">⚙️ Settings</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            
+            <!-- Inbox Tab -->
+            <div id="inbox" class="tab-panel active">
+                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px;">
+                    <h4 style="color: #007bff; margin: 0;">📨 Notification Inbox</h4>
+                    <div>
+                        <button onclick="markAllAsRead()" style="background: #28a745; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px;">
+                            ✓ Mark All Read
+                        </button>
+                        <button onclick="deleteAllRead()" style="background: #dc3545; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; margin-right: 8px;">
+                            🗑️ Delete Read
+                        </button>
+                        <button onclick="refreshNotifications()" style="background: #6c757d; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer;">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Filter Options -->
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                        <div>
+                            <label for="statusFilter" style="margin-right: 8px;">Status:</label>
+                            <select id="statusFilter" onchange="filterNotifications()">
+                                <option value="all">All Notifications</option>
+                                <option value="unread">Unread Only</option>
+                                <option value="read">Read Only</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="typeFilter" style="margin-right: 8px;">Type:</label>
+                            <select id="typeFilter" onchange="filterNotifications()">
+                                <option value="all">All Types</option>
+                                <option value="order">Order Updates</option>
+                                <option value="promotion">Promotions</option>
+                                <option value="system">System Alerts</option>
+                                <option value="reminder">Reminders</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="channelFilter" style="margin-right: 8px;">Channel:</label>
+                            <select id="channelFilter" onchange="filterNotifications()">
+                                <option value="all">All Channels</option>
+                                <option value="email">Email</option>
+                                <option value="sms">SMS</option>
+                                <option value="push">Push</option>
+                            </select>
+                        </div>
+                        
+                        <button onclick="clearNotificationFilters()" style="background: #fd7e14; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer;">
+                            Clear Filters
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Notifications List -->
+                <div id="notificationsList" style="border: 1px solid #ddd; border-radius: 8px; background: white;">
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <div style="font-size: 3em; margin-bottom: 20px;">📬</div>
+                        <p>Loading notifications...</p>
+                    </div>
+                </div>
+                
+            </div>
+
+            <!-- Send Notification Tab -->
+            <div id="send" class="tab-panel">
+                <h4 style="color: #007bff; margin-bottom: 20px;">📤 Send Notification</h4>
+                
+                <div style="background: #e7f3ff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                    <strong>📋 Available Channels:</strong>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li><strong>Email:</strong> Send formatted HTML emails with attachments</li>
+                        <li><strong>SMS:</strong> Send text messages to mobile numbers</li>
+                    </ul>
+                </div>
+                
+                <!-- Email Notification Form -->
+                <div style="margin-bottom: 30px; border: 1px solid #ddd; padding: 20px; border-radius: 8px;">
+                    <h5 style="color: #007bff; margin-bottom: 15px;">📧 Send Email Notification</h5>
+                    
+                    <form id="emailForm" onsubmit="return handleSendEmail(event)">
+                        
+                        <div class="form-group">
+                            <label for="emailRecipient">Recipient Email:</label>
+                            <input type="email" id="emailRecipient" placeholder="Enter recipient email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="emailSubject">Subject:</label>
+                            <input type="text" id="emailSubject" placeholder="Email subject" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="emailType">Email Type:</label>
+                            <select id="emailType" required onchange="loadEmailTemplate()">
+                                <option value="">Select email type...</option>
+                                <option value="welcome">Welcome Email</option>
+                                <option value="order_confirmation">Order Confirmation</option>
+                                <option value="promotion">Promotional Offer</option>
+                                <option value="reminder">Reminder</option>
+                                <option value="custom">Custom Message</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="emailMessage">Message:</label>
+                            <textarea id="emailMessage" rows="6" placeholder="Email message content" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="emailPriority">Priority:</label>
+                            <select id="emailPriority">
+                                <option value="normal">Normal</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit">
+                            <span class="loading" style="display: none;">Sending Email...</span>
+                            <span class="normal">📧 Send Email</span>
+                        </button>
+                        
+                    </form>
+                </div>
+                
+                <!-- SMS Notification Form -->
+                <div style="border: 1px solid #ddd; padding: 20px; border-radius: 8px;">
+                    <h5 style="color: #007bff; margin-bottom: 15px;">📱 Send SMS Notification</h5>
+                    
+                    <form id="smsForm" onsubmit="return handleSendSMS(event)">
+                        
+                        <div class="form-group">
+                            <label for="smsRecipient">Recipient Phone Number:</label>
+                            <input type="tel" id="smsRecipient" placeholder="+65 9123 4567" required>
+                            <small style="color: #666; font-size: 0.8em;">Include country code (e.g., +65 for Singapore)</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="smsType">SMS Type:</label>
+                            <select id="smsType" required onchange="loadSMSTemplate()">
+                                <option value="">Select SMS type...</option>
+                                <option value="order_update">Order Update</option>
+                                <option value="delivery_alert">Delivery Alert</option>
+                                <option value="promotion">Promotional SMS</option>
+                                <option value="reminder">Reminder</option>
+                                <option value="otp">OTP Verification</option>
+                                <option value="custom">Custom Message</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="smsMessage">Message:</label>
+                            <textarea id="smsMessage" rows="4" placeholder="SMS message content (160 chars recommended)" required maxlength="320"></textarea>
+                            <small style="color: #666; font-size: 0.8em;">Characters: <span id="smsCharCount">0</span>/320</small>
+                        </div>
+                        
+                        <button type="submit">
+                            <span class="loading" style="display: none;">Sending SMS...</span>
+                            <span class="normal">📱 Send SMS</span>
+                        </button>
+                        
+                    </form>
+                </div>
+                
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings" class="tab-panel">
+                <h4 style="color: #007bff; margin-bottom: 20px;">⚙️ Notification Settings</h4>
+                
+                <!-- Notification Preferences -->
+                <div style="border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
+                    <h5 style="color: #007bff; margin-bottom: 15px;">🔔 Notification Preferences</h5>
+                    
+                    <form id="notificationSettingsForm" onsubmit="return saveNotificationSettings(event)">
+                        
+                        <div style="margin-bottom: 20px;">
+                            <h6 style="margin-bottom: 10px;">Email Notifications:</h6>
+                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-bottom: 8px;">
+                                <label>Order confirmations and updates</label>
+                                <label style="display: flex; align-items: center; gap: 5px;">
+                                    <input type="checkbox" id="emailOrders" checked> Enable
+                                </label>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-bottom: 8px;">
+                                <label>Promotional offers and deals</label>
+                                <label style="display: flex; align-items: center; gap: 5px;">
+                                    <input type="checkbox" id="emailPromotions" checked> Enable
+                                </label>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-bottom: 8px;">
+                                <label>System alerts and maintenance</label>
+                                <label style="display: flex; align-items: center; gap: 5px;">
+                                    <input type="checkbox" id="emailSystem" checked> Enable
+                                </label>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-bottom: 8px;">
+                                <label>Container return reminders</label>
+                                <label style="display: flex; align-items: center; gap: 5px;">
+                                    <input type="checkbox" id="emailReminders" checked> Enable
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <h6 style="margin-bottom: 10px;">SMS Notifications:</h6>
+                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-bottom: 8px;">
+                                <label>Order status updates</label>
+                                <label style="display: flex; align-items: center; gap: 5px;">
+                                    <input type="checkbox" id="smsOrders" checked> Enable
+                                </label>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-bottom: 8px;">
+                                <label>Delivery notifications</label>
+                                <label style="display: flex; align-items: center; gap: 5px;">
+                                    <input type="checkbox" id="smsDelivery" checked> Enable
+                                </label>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-bottom: 8px;">
+                                <label>Security alerts (login, payments)</label>
+                                <label style="display: flex; align-items: center; gap: 5px;">
+                                    <input type="checkbox" id="smsSecurity" checked> Enable
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <h6 style="margin-bottom: 10px;">Timing Preferences:</h6>
+                            <div class="form-group">
+                                <label for="quietHoursStart">Quiet Hours Start:</label>
+                                <input type="time" id="quietHoursStart" value="22:00">
+                            </div>
+                            <div class="form-group">
+                                <label for="quietHoursEnd">Quiet Hours End:</label>
+                                <input type="time" id="quietHoursEnd" value="08:00">
+                            </div>
+                            <small style="color: #666; font-size: 0.8em;">Non-urgent notifications will be delayed during quiet hours</small>
+                        </div>
+                        
+                        <button type="submit">
+                            <span class="loading" style="display: none;">Saving...</span>
+                            <span class="normal">💾 Save Preferences</span>
+                        </button>
+                        
+                    </form>
+                </div>
+                
+                <!-- Notification History Stats -->
+                <div style="border: 1px solid #ddd; padding: 20px; border-radius: 8px;">
+                    <h5 style="color: #007bff; margin-bottom: 15px;">📊 Notification Statistics</h5>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                            <div style="font-size: 1.5em; font-weight: bold; color: #007bff;" id="statsEmailsSent">0</div>
+                            <div style="font-size: 0.9em; color: #666;">Emails Sent</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                            <div style="font-size: 1.5em; font-weight: bold; color: #28a745;" id="statsSMSSent">0</div>
+                            <div style="font-size: 0.9em; color: #666;">SMS Sent</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                            <div style="font-size: 1.5em; font-weight: bold; color: #fd7e14;" id="statsOpenRate">0%</div>
+                            <div style="font-size: 0.9em; color: #666;">Email Open Rate</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                            <div style="font-size: 1.5em; font-weight: bold; color: #6f42c1;" id="statsClickRate">0%</div>
+                            <div style="font-size: 0.9em; color: #666;">Click Rate</div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://djkzzr6w1g.execute-api.us-east-1.amazonaws.com/default';
+        let allNotifications = [];
+        let filteredNotifications = [];
+        
+        window.addEventListener('load', function() {
+            checkAuthentication();
+            loadNotifications();
+            updateCartCount();
+            setupSMSCharCounter();
+            loadNotificationSettings();
+        });
+        
+        function checkAuthentication() {
+            const userId = sessionStorage.getItem("user_id");
+            if (!userId) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+        
+        // Tab switching
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-panel');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'inbox') {
+                loadNotifications();
+            } else if (tabName === 'settings') {
+                loadNotificationStats();
+            }
+        }
+        
+        async function loadNotifications() {
+            // For demo purposes, create sample notifications since there's no GET endpoint for notifications
+            // In a real app, this would call a GET endpoint like /api/notifications/{user_id}
+            
+            const sampleNotifications = [
+                {
+                    id: 'notif_001',
+                    type: 'order',
+                    channel: 'email',
+                    title: 'Order Confirmed',
+                    message: 'Your order #12345 has been confirmed and is being prepared.',
+                    timestamp: new Date(Date.now() - 1*60*60*1000).toISOString(),
+                    read: false,
+                    priority: 'normal'
+                },
+                {
+                    id: 'notif_002',
+                    type: 'promotion',
+                    channel: 'push',
+                    title: 'Special Offer',
+                    message: 'Get 20% off on all items expiring today! Limited time offer.',
+                    timestamp: new Date(Date.now() - 3*60*60*1000).toISOString(),
+                    read: false,
+                    priority: 'normal'
+                },
+                {
+                    id: 'notif_003',
+                    type: 'reminder',
+                    channel: 'sms',
+                    title: 'Container Return Reminder',
+                    message: 'Please return your borrowed container by tomorrow to avoid late fees.',
+                    timestamp: new Date(Date.now() - 6*60*60*1000).toISOString(),
+                    read: true,
+                    priority: 'high'
+                },
+                {
+                    id: 'notif_004',
+                    type: 'system',
+                    channel: 'email',
+                    title: 'Maintenance Notice',
+                    message: 'QLess will undergo scheduled maintenance tonight from 2AM to 4AM.',
+                    timestamp: new Date(Date.now() - 24*60*60*1000).toISOString(),
+                    read: true,
+                    priority: 'normal'
+                }
+            ];
+            
+            allNotifications = sampleNotifications;
+            filteredNotifications = [...allNotifications];
+            
+            displayNotifications();
+            updateNotificationStats();
+        }
+        
+        function displayNotifications() {
+            if (filteredNotifications.length === 0) {
+                document.getElementById('notificationsList').innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <div style="font-size: 3em; margin-bottom: 20px;">📭</div>
+                        <h3>No notifications found</h3>
+                        <p>No notifications match your current filter settings.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const notificationsHTML = filteredNotifications.map(notification => createNotificationCard(notification)).join('');
+            document.getElementById('notificationsList').innerHTML = notificationsHTML;
+        }
+        
+        function createNotificationCard(notification) {
+            const isUnread = !notification.read;
+            const timestamp = new Date(notification.timestamp);
+            const timeAgo = getTimeAgo(timestamp);
+            
+            const priorityColors = {
+                urgent: '#dc3545',
+                high: '#fd7e14',
+                normal: '#28a745'
+            };
+            
+            const channelIcons = {
+                email: '📧',
+                sms: '📱',
+                push: '🔔'
+            };
+            
+            const typeIcons = {
+                order: '📦',
+                promotion: '🎉',
+                reminder: '⏰',
+                system: '⚙️'
+            };
+            
+            return `
+                <div style="padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; ${isUnread ? 'background: #f8f9ff; border-left: 4px solid #007bff;' : ''}"
+                     onclick="toggleNotificationRead('${notification.id}')"
+                     onmouseover="this.style.backgroundColor='#f5f5f5'"
+                     onmouseout="this.style.backgroundColor='${isUnread ? '#f8f9ff' : 'white'}'">
+                    
+                    <div style="display: flex; justify-content: between; align-items: start;">
+                        <div style="display: flex; align-items: start; gap: 12px; flex: 1;">
+                            <div style="font-size: 1.5em;">${typeIcons[notification.type] || '📋'}</div>
+                            
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                                    <h5 style="margin: 0; color: #007bff; ${isUnread ? 'font-weight: bold;' : ''}">${notification.title}</h5>
+                                    ${isUnread ? '<span style="background: #dc3545; color: white; padding: 1px 5px; border-radius: 3px; font-size: 0.7em;">NEW</span>' : ''}
+                                    <span style="background: ${priorityColors[notification.priority] || '#28a745'}; color: white; padding: 1px 5px; border-radius: 3px; font-size: 0.7em;">
+                                        ${notification.priority?.toUpperCase() || 'NORMAL'}
+                                    </span>
+                                </div>
+                                
+                                <p style="margin: 5px 0; color: #666; line-height: 1.4; ${isUnread ? 'font-weight: 500;' : ''}">${notification.message}</p>
+                                
+                                <div style="display: flex; align-items: center; gap: 15px; font-size: 0.85em; color: #999; margin-top: 8px;">
+                                    <span>${channelIcons[notification.channel] || '📋'} ${notification.channel?.toUpperCase() || 'EMAIL'}</span>
+                                    <span>⏰ ${timeAgo}</span>
+                                    <span>📅 ${timestamp.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 5px; margin-left: 15px;">
+                            <button onclick="event.stopPropagation(); markNotificationAsRead('${notification.id}')" 
+                                    style="background: ${isUnread ? '#28a745' : '#6c757d'}; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 0.75em;">
+                                ${isUnread ? '✓ Mark Read' : '👁️ Read'}
+                            </button>
+                            <button onclick="event.stopPropagation(); deleteNotification('${notification.id}')" 
+                                    style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 0.75em;">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMinutes = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMinutes < 1) return 'Just now';
+            if (diffMinutes < 60) return `${diffMinutes}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return date.toLocaleDateString();
+        }
+        
+        function updateNotificationStats() {
+            const unreadCount = allNotifications.filter(n => !n.read).length;
+            const todayCount = allNotifications.filter(n => {
+                const notifDate = new Date(n.timestamp);
+                const today = new Date();
+                return notifDate.toDateString() === today.toDateString();
+            }).length;
+            const totalCount = allNotifications.length;
+            
+            document.getElementById('unreadCount').textContent = unreadCount;
+            document.getElementById('todayCount').textContent = todayCount;
+            document.getElementById('totalCount').textContent = totalCount;
+        }
+        
+        function filterNotifications() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const channelFilter = document.getElementById('channelFilter').value;
+            
+            filteredNotifications = allNotifications.filter(notification => {
+                // Status filter
+                if (statusFilter === 'unread' && notification.read) return false;
+                if (statusFilter === 'read' && !notification.read) return false;
+                
+                // Type filter
+                if (typeFilter !== 'all' && notification.type !== typeFilter) return false;
+                
+                // Channel filter
+                if (channelFilter !== 'all' && notification.channel !== channelFilter) return false;
+                
+                return true;
+            });
+            
+            displayNotifications();
+        }
+        
+        function clearNotificationFilters() {
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('typeFilter').value = 'all';
+            document.getElementById('channelFilter').value = 'all';
+            
+            filteredNotifications = [...allNotifications];
+            displayNotifications();
+        }
+        
+        function toggleNotificationRead(notificationId) {
+            const notification = allNotifications.find(n => n.id === notificationId);
+            if (notification) {
+                notification.read = !notification.read;
+                displayNotifications();
+                updateNotificationStats();
+            }
+        }
+        
+        function markNotificationAsRead(notificationId) {
+            const notification = allNotifications.find(n => n.id === notificationId);
+            if (notification) {
+                notification.read = true;
+                displayNotifications();
+                updateNotificationStats();
+                showAlert('Notification marked as read', 'success');
+            }
+        }
+        
+        function deleteNotification(notificationId) {
+            if (confirm('Are you sure you want to delete this notification?')) {
+                allNotifications = allNotifications.filter(n => n.id !== notificationId);
+                filteredNotifications = filteredNotifications.filter(n => n.id !== notificationId);
+                displayNotifications();
+                updateNotificationStats();
+                showAlert('Notification deleted', 'success');
+            }
+        }
+        
+        function markAllAsRead() {
+            allNotifications.forEach(n => n.read = true);
+            displayNotifications();
+            updateNotificationStats();
+            showAlert('All notifications marked as read', 'success');
+        }
+        
+        function deleteAllRead() {
+            const readCount = allNotifications.filter(n => n.read).length;
+            if (readCount === 0) {
+                showAlert('No read notifications to delete', 'info');
+                return;
+            }
+            
+            if (confirm(`Delete all ${readCount} read notifications?`)) {
+                allNotifications = allNotifications.filter(n => !n.read);
+                filteredNotifications = filteredNotifications.filter(n => !n.read);
+                displayNotifications();
+                updateNotificationStats();
+                showAlert(`${readCount} read notifications deleted`, 'success');
+            }
+        }
+        
+        function refreshNotifications() {
+            loadNotifications();
+            showAlert('Notifications refreshed', 'success');
+        }
+        
+        // Email sending
+        async function handleSendEmail(event) {
+            event.preventDefault();
+            
+            const emailData = {
+                recipient: document.getElementById('emailRecipient').value,
+                subject: document.getElementById('emailSubject').value,
+                message: document.getElementById('emailMessage').value,
+                type: document.getElementById('emailType').value,
+                priority: document.getElementById('emailPriority').value
+            };
+            
+            showLoading('email');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/notification/sns`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        type: 'email',
+                        recipient: emailData.recipient,
+                        subject: emailData.subject,
+                        message: emailData.message,
+                        metadata: {
+                            email_type: emailData.type,
+                            priority: emailData.priority
+                        }
+                    })
+                });
+                
+                if (response.ok) {
+                    hideLoading('email');
+                    showAlert('Email sent successfully!', 'success');
+                    document.getElementById('emailForm').reset();
+                } else {
+                    hideLoading('email');
+                    showAlert('Failed to send email', 'danger');
+                }
+            } catch (error) {
+                hideLoading('email');
+                console.error('Error sending email:', error);
+                showAlert('Error sending email', 'danger');
+            }
+            
+            return false;
+        }
+        
+        // SMS sending
+        async function handleSendSMS(event) {
+            event.preventDefault();
+            
+            const smsData = {
+                recipient: document.getElementById('smsRecipient').value,
+                message: document.getElementById('smsMessage').value,
+                type: document.getElementById('smsType').value
+            };
+            
+            showLoading('sms');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/notification/ses`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        type: 'sms',
+                        recipient: smsData.recipient,
+                        message: smsData.message,
+                        metadata: {
+                            sms_type: smsData.type
+                        }
+                    })
+                });
+                
+                if (response.ok) {
+                    hideLoading('sms');
+                    showAlert('SMS sent successfully!', 'success');
+                    document.getElementById('smsForm').reset();
+                    updateSMSCharCount();
+                } else {
+                    hideLoading('sms');
+                    showAlert('Failed to send SMS', 'danger');
+                }
+            } catch (error) {
+                hideLoading('sms');
+                console.error('Error sending SMS:', error);
+                showAlert('Error sending SMS', 'danger');
+            }
+            
+            return false;
+        }
+        
+        function setupSMSCharCounter() {
+            document.getElementById('smsMessage').addEventListener('input', updateSMSCharCount);
+        }
+        
+        function updateSMSCharCount() {
+            const message = document.getElementById('smsMessage').value;
+            document.getElementById('smsCharCount').textContent = message.length;
+        }
+        
+        function loadEmailTemplate() {
+            const type = document.getElementById('emailType').value;
+            const templates = {
+                welcome: 'Welcome to QLess! We\'re excited to have you join our sustainable food community.',
+                order_confirmation: 'Your order has been confirmed! We\'ll notify you when it\'s ready for pickup or delivery.',
+                promotion: 'Special offer just for you! Get amazing discounts on fresh food items.',
+                reminder: 'Friendly reminder: Please don\'t forget to return your borrowed container.',
+                custom: ''
+            };
+            
+            if (templates[type] !== undefined) {
+                document.getElementById('emailMessage').value = templates[type];
+            }
+        }
+        
+        function loadSMSTemplate() {
+            const type = document.getElementById('smsType').value;
+            const templates = {
+                order_update: 'QLess: Your order #ORDER_ID is ready for pickup at MERCHANT_NAME.',
+                delivery_alert: 'QLess: Your order is out for delivery and will arrive in 15-30 minutes.',
+                promotion: 'QLess: Special offer! 20% off expiring items. Valid today only. Shop now!',
+                reminder: 'QLess: Please return your container by RETURN_DATE to avoid late fees.',
+                otp: 'QLess: Your verification code is OTP_CODE. Do not share this code.',
+                custom: ''
+            };
+            
+            if (templates[type] !== undefined) {
+                document.getElementById('smsMessage').value = templates[type];
+                updateSMSCharCount();
+            }
+        }
+        
+        function loadNotificationSettings() {
+            // Load saved settings from localStorage (in real app, from API)
+            const settings = JSON.parse(localStorage.getItem('qless_notification_settings') || '{}');
+            
+            // Set checkboxes based on saved settings
+            document.getElementById('emailOrders').checked = settings.emailOrders !== false;
+            document.getElementById('emailPromotions').checked = settings.emailPromotions !== false;
+            document.getElementById('emailSystem').checked = settings.emailSystem !== false;
+            document.getElementById('emailReminders').checked = settings.emailReminders !== false;
+            document.getElementById('smsOrders').checked = settings.smsOrders !== false;
+            document.getElementById('smsDelivery').checked = settings.smsDelivery !== false;
+            document.getElementById('smsSecurity').checked = settings.smsSecurity !== false;
+            
+            document.getElementById('quietHoursStart').value = settings.quietHoursStart || '22:00';
+            document.getElementById('quietHoursEnd').value = settings.quietHoursEnd || '08:00';
+        }
+        
+        function saveNotificationSettings(event) {
+            event.preventDefault();
+            
+            const settings = {
+                emailOrders: document.getElementById('emailOrders').checked,
+                emailPromotions: document.getElementById('emailPromotions').checked,
+                emailSystem: document.getElementById('emailSystem').checked,
+                emailReminders: document.getElementById('emailReminders').checked,
+                smsOrders: document.getElementById('smsOrders').checked,
+                smsDelivery: document.getElementById('smsDelivery').checked,
+                smsSecurity: document.getElementById('smsSecurity').checked,
+                quietHoursStart: document.getElementById('quietHoursStart').value,
+                quietHoursEnd: document.getElementById('quietHoursEnd').value
+            };
+            
+            // Save to localStorage (in real app, save to API)
+            localStorage.setItem('qless_notification_settings', JSON.stringify(settings));
+            
+            showAlert('Notification preferences saved!', 'success');
+            return false;
+        }
+        
+        function loadNotificationStats() {
+            // Demo stats (in real app, load from API)
+            document.getElementById('statsEmailsSent').textContent = '127';
+            document.getElementById('statsSMSSent').textContent = '43';
+            document.getElementById('statsOpenRate').textContent = '68%';
+            document.getElementById('statsClickRate').textContent = '23%';
+        }
+        
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('qless_cart') || '[]');
+            document.getElementById('cartCount').textContent = cart.length;
+        }
+        
+        function logout() {
+            sessionStorage.removeItem("user_id");
+            sessionStorage.removeItem("user");
+            localStorage.removeItem("qless_cart");
+            window.location.href = "index.html";
+        }
+        
+        // Utility functions
+        function showAlert(message, type) {
+            const alertDiv = document.getElementById('alertMessage');
+            alertDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            alertDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        function showLoading(formType) {
+            const form = document.getElementById(formType + 'Form');
+            const loadingSpan = form.querySelector('.loading');
+            const normalSpan = form.querySelector('.normal');
+            
+            if (loadingSpan && normalSpan) {
+                loadingSpan.style.display = 'inline';
+                normalSpan.style.display = 'none';
+            }
+        }
+        
+        function hideLoading(formType) {
+            const form = document.getElementById(formType + 'Form');
+            const loadingSpan = form.querySelector('.loading');
+            const normalSpan = form.querySelector('.normal');
+            
+            if (loadingSpan && normalSpan) {
+                loadingSpan.style.display = 'none';
+                normalSpan.style.display = 'inline';
+            }
+        }
+    </script>
+</body>
+</html>

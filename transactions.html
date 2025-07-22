@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QLess - Transactions</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <div style="text-align: center; margin-bottom: 20px; padding: 10px; background: #f5f5f5; border-bottom: 1px solid #ccc;">
+        <h2>Transaction History</h2>
+        <div style="margin-top: 10px;">
+            <a href="dashboard.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">🏠 Home</a>
+            <a href="items.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">🛒 Shop</a>
+            <a href="cart.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">🛍️ Cart (<span id="cartCount">0</span>)</a>
+            <a href="favourites.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">❤️ Favourites</a>
+            <a href="wallet.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">💳 Wallet</a>
+            <a href="containerloan.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">📦 Containers</a>
+            <a href="transactions.html" style="margin: 0 8px; text-decoration: none; color: #007bff; font-weight: bold;">📊 Transactions</a>
+            <a href="profile.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">👤 Profile</a>
+            <a href="notifications.html" style="margin: 0 8px; text-decoration: none; color: #007bff;">🔔 Alerts</a>
+            <a href="#" onclick="logout()" style="margin: 0 8px; text-decoration: none; color: #007bff;">📤 Logout</a>
+        </div>
+    </div>
+
+    <!-- Transactions Container -->
+    <div style="max-width: 1000px; margin: 20px auto; padding: 20px;">
+        
+        <!-- Alert Messages -->
+        <div id="alertMessage" style="display: none;"></div>
+        
+        <!-- Summary Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+            
+            <div style="padding: 20px; border: 1px solid #ccc; text-align: center; background: linear-gradient(135deg, #28a745, #20c997); color: white; border-radius: 8px;">
+                <h3 style="margin-bottom: 10px; opacity: 0.9;">Total Spent</h3>
+                <p style="font-size: 2.5em; font-weight: bold; margin: 10px 0;" id="totalSpent">$0.00</p>
+                <small style="opacity: 0.8;">Lifetime purchases</small>
+            </div>
+            
+            <div style="padding: 20px; border: 1px solid #ccc; text-align: center; background: linear-gradient(135deg, #fd7e14, #f8b500); color: white; border-radius: 8px;">
+                <h3 style="margin-bottom: 10px; opacity: 0.9;">Total Saved</h3>
+                <p style="font-size: 2.5em; font-weight: bold; margin: 10px 0;" id="totalSaved">$0.00</p>
+                <small style="opacity: 0.8;">From discounts</small>
+            </div>
+            
+            <div style="padding: 20px; border: 1px solid #ccc; text-align: center; background: linear-gradient(135deg, #007bff, #0056b3); color: white; border-radius: 8px;">
+                <h3 style="margin-bottom: 10px; opacity: 0.9;">Transactions</h3>
+                <p style="font-size: 2.5em; font-weight: bold; margin: 10px 0;" id="totalTransactions">0</p>
+                <small style="opacity: 0.8;">Total orders</small>
+            </div>
+            
+            <div style="padding: 20px; border: 1px solid #ccc; text-align: center; background: linear-gradient(135deg, #6f42c1, #5a2d91); color: white; border-radius: 8px;">
+                <h3 style="margin-bottom: 10px; opacity: 0.9;">Avg Order</h3>
+                <p style="font-size: 2.5em; font-weight: bold; margin: 10px 0;" id="avgOrder">$0.00</p>
+                <small style="opacity: 0.8;">Per transaction</small>
+            </div>
+            
+        </div>
+
+        <!-- Filters and Controls -->
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="dateFilter" style="margin-right: 8px;">Period:</label>
+                    <select id="dateFilter" onchange="filterTransactions()">
+                        <option value="all">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="quarter">Last 3 Months</option>
+                        <option value="year">This Year</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="typeFilter" style="margin-right: 8px;">Type:</label>
+                    <select id="typeFilter" onchange="filterTransactions()">
+                        <option value="all">All Types</option>
+                        <option value="purchase">Purchases</option>
+                        <option value="refund">Refunds</option>
+                        <option value="topup">Wallet Top-ups</option>
+                        <option value="withdrawal">Withdrawals</option>
+                        <option value="deposit">Container Deposits</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="statusFilter" style="margin-right: 8px;">Status:</label>
+                    <select id="statusFilter" onchange="filterTransactions()">
+                        <option value="all">All Status</option>
+                        <option value="completed">Completed</option>
+                        <option value="pending">Pending</option>
+                        <option value="failed">Failed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="sortBy" style="margin-right: 8px;">Sort by:</label>
+                    <select id="sortBy" onchange="sortTransactions()">
+                        <option value="date_desc">Date (Newest First)</option>
+                        <option value="date_asc">Date (Oldest First)</option>
+                        <option value="amount_desc">Amount (High to Low)</option>
+                        <option value="amount_asc">Amount (Low to High)</option>
+                    </select>
+                </div>
+                
+            </div>
+            
+            <div id="customDateRange" style="display: none; margin-top: 15px;">
+                <label for="startDate" style="margin-right: 10px;">From:</label>
+                <input type="date" id="startDate" style="margin-right: 20px;">
+                <label for="endDate" style="margin-right: 10px;">To:</label>
+                <input type="date" id="endDate" style="margin-right: 20px;">
+                <button onclick="applyCustomDateFilter()" style="background: #007bff; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer;">Apply</button>
+            </div>
+            
+            <div style="margin-top: 15px; display: flex; gap: 10px; align-items: center;">
+                <button onclick="refreshTransactions()" style="background: #28a745; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">
+                    🔄 Refresh
+                </button>
+                <button onclick="exportTransactions()" style="background: #6c757d; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">
+                    📥 Export CSV
+                </button>
+                <button onclick="clearFilters()" style="background: #fd7e14; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">
+                    🗑️ Clear Filters
+                </button>
+                <div style="margin-left: auto; color: #666; font-size: 0.9em;">
+                    Showing <span id="resultCount">0</span> transactions
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction List -->
+        <div id="transactionsList" style="background: white; border: 1px solid #ddd; border-radius: 8px;">
+            <div style="text-align: center; padding: 40px; color: #666;">
+                <div style="font-size: 3em; margin-bottom: 20px;">📊</div>
+                <p>Loading transaction history...</p>
+            </div>
+        </div>
+        
+        <!-- Load More Button -->
+        <div style="text-align: center; margin-top: 20px;">
+            <button id="loadMoreBtn" onclick="loadMoreTransactions()" style="background: #007bff; color: white; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; display: none;">
+                Load More Transactions
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Transaction Details Modal -->
+    <div id="transactionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+        <div style="background: white; width: 90%; max-width: 600px; margin: 50px auto; padding: 20px; border-radius: 8px; max-height: 80vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px;">
+                <h3 id="modalTransactionTitle">Transaction Details</h3>
+                <button onclick="closeTransactionModal()" style="background: #dc3545; color: white; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; margin-left: auto;">✕</button>
+            </div>
+            
+            <div id="modalTransactionContent">
+                <!-- Transaction details loaded via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://djkzzr6w1g.execute-api.us-east-1.amazonaws.com/default';
+        let allTransactions = [];
+        let filteredTransactions = [];
+        let currentPage = 0;
+        const transactionsPerPage = 20;
+        
+        window.addEventListener('load', function() {
+            checkAuthentication();
+            loadTransactions();
+            updateCartCount();
+        });
+        
+        function checkAuthentication() {
+            const userId = sessionStorage.getItem("user_id");
+            if (!userId) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+        
+        async function loadTransactions() {
+            const userId = sessionStorage.getItem("user_id");
+            if (!userId) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/transaction/${userId}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    allTransactions = data.transactions || [];
+                    filteredTransactions = [...allTransactions];
+                    
+                    displayTransactions();
+                    updateSummaryStats();
+                } else {
+                    allTransactions = [];
+                    displayNoTransactions();
+                }
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                showAlert('Error loading transaction history', 'danger');
+                displayNoTransactions();
+            }
+        }
+        
+        function displayTransactions() {
+            const startIndex = currentPage * transactionsPerPage;
+            const endIndex = startIndex + transactionsPerPage;
+            const transactionsToShow = filteredTransactions.slice(0, endIndex);
+            
+            if (transactionsToShow.length === 0) {
+                displayNoTransactions();
+                return;
+            }
+            
+            const transactionsHTML = transactionsToShow.map(transaction => createTransactionCard(transaction)).join('');
+            document.getElementById('transactionsList').innerHTML = transactionsHTML;
+            
+            // Show/hide load more button
+            const loadMoreBtn = document.getElementById('loadMoreBtn');
+            if (endIndex < filteredTransactions.length) {
+                loadMoreBtn.style.display = 'block';
+            } else {
+                loadMoreBtn.style.display = 'none';
+            }
+            
+            document.getElementById('resultCount').textContent = filteredTransactions.length;
+        }
+        
+        function createTransactionCard(transaction) {
+            const transactionDate = new Date(transaction.transaction_date || transaction.created_at);
+            const amount = Math.abs(transaction.amount || 0);
+            const isPositive = transaction.type === 'topup' || transaction.type === 'refund' || (transaction.amount > 0);
+            
+            // Icons for different transaction types
+            const icons = {
+                purchase: '🛒',
+                refund: '💰',
+                topup: '💳',
+                withdrawal: '💸',
+                deposit: '📦',
+                default: '📄'
+            };
+            
+            const statusColors = {
+                completed: '#28a745',
+                pending: '#fd7e14',
+                failed: '#dc3545',
+                cancelled: '#6c757d'
+            };
+            
+            const icon = icons[transaction.type] || icons.default;
+            const statusColor = statusColors[transaction.status] || statusColors.completed;
+            
+            return `
+                <div style="padding: 20px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.2s;" 
+                     onclick="viewTransactionDetails('${transaction.transaction_id}')"
+                     onmouseover="this.style.backgroundColor='#f8f9fa'"
+                     onmouseout="this.style.backgroundColor='white'">
+                    
+                    <div style="display: flex; justify-content: between; align-items: start;">
+                        <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
+                            <div style="font-size: 2em;">${icon}</div>
+                            
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                                    <h5 style="color: #007bff; margin: 0;">${transaction.description || transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}</h5>
+                                    <span style="background: ${statusColor}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8em;">
+                                        ${transaction.status?.toUpperCase() || 'COMPLETED'}
+                                    </span>
+                                </div>
+                                
+                                <p style="color: #666; margin: 5px 0; font-size: 0.9em;">
+                                    ${transactionDate.toLocaleString()} • ID: ${transaction.transaction_id}
+                                </p>
+                                
+                                ${transaction.merchant ? `<p style="color: #666; margin: 5px 0; font-size: 0.9em;">🏪 ${transaction.merchant}</p>` : ''}
+                                
+                                ${transaction.items && transaction.items.length > 0 ? 
+                                    `<p style="color: #666; margin: 5px 0; font-size: 0.9em;">📦 ${transaction.items.length} item(s)</p>` : ''
+                                }
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: right; margin-left: 20px;">
+                            <div style="font-size: 1.3em; font-weight: bold; color: ${isPositive ? '#28a745' : '#dc3545'}; margin-bottom: 5px;">
+                                ${isPositive ? '+' : '-'}$${amount.toFixed(2)}
+                            </div>
+                            
+                            ${transaction.original_amount && transaction.original_amount !== transaction.amount ? 
+                                `<div style="font-size: 0.8em; color: #999; text-decoration: line-through;">
+                                    $${Math.abs(transaction.original_amount).toFixed(2)}
+                                </div>
+                                <div style="font-size: 0.8em; color: #28a745;">
+                                    Saved $${Math.abs(transaction.original_amount - Math.abs(transaction.amount)).toFixed(2)}
+                                </div>` : ''
+                            }
+                            
+                            ${transaction.payment_method ? 
+                                `<div style="font-size: 0.8em; color: #666; margin-top: 5px;">
+                                    ${transaction.payment_method.toUpperCase()}
+                                </div>` : ''
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function displayNoTransactions() {
+            document.getElementById('transactionsList').innerHTML = `
+                <div style="text-align: center; padding: 60px; color: #666;">
+                    <div style="font-size: 4em; margin-bottom: 20px; opacity: 0.5;">📊</div>
+                    <h3>No transactions found</h3>
+                    <p style="margin-bottom: 20px;">Start shopping to see your transaction history here!</p>
+                    <button onclick="window.location.href='items.html'" style="background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer;">
+                        Start Shopping
+                    </button>
+                </div>
+            `;
+            document.getElementById('resultCount').textContent = '0';
+        }
+        
+        function updateSummaryStats() {
+            const completedTransactions = allTransactions.filter(t => t.status === 'completed' || !t.status);
+            
+            const totalSpent = completedTransactions
+                .filter(t => t.type === 'purchase')
+                .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+            
+            const totalSaved = completedTransactions
+                .filter(t => t.original_amount && t.original_amount !== t.amount)
+                .reduce((sum, t) => sum + Math.abs(t.original_amount - Math.abs(t.amount)), 0);
+            
+            const totalCount = completedTransactions.length;
+            const avgOrder = totalCount > 0 ? totalSpent / completedTransactions.filter(t => t.type === 'purchase').length : 0;
+            
+            document.getElementById('totalSpent').textContent = `$${totalSpent.toFixed(2)}`;
+            document.getElementById('totalSaved').textContent = `$${totalSaved.toFixed(2)}`;
+            document.getElementById('totalTransactions').textContent = totalCount;
+            document.getElementById('avgOrder').textContent = `$${(avgOrder || 0).toFixed(2)}`;
+        }
+        
+        function filterTransactions() {
+            const dateFilter = document.getElementById('dateFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            // Show/hide custom date range
+            document.getElementById('customDateRange').style.display = dateFilter === 'custom' ? 'block' : 'none';
+            
+            filteredTransactions = allTransactions.filter(transaction => {
+                // Date filter
+                if (dateFilter !== 'all' && dateFilter !== 'custom') {
+                    const transactionDate = new Date(transaction.transaction_date || transaction.created_at);
+                    const now = new Date();
+                    
+                    switch (dateFilter) {
+                        case 'today':
+                            if (transactionDate.toDateString() !== now.toDateString()) return false;
+                            break;
+                        case 'week':
+                            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            if (transactionDate < weekAgo) return false;
+                            break;
+                        case 'month':
+                            const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+                            if (transactionDate < monthAgo) return false;
+                            break;
+                        case 'quarter':
+                            const quarterAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+                            if (transactionDate < quarterAgo) return false;
+                            break;
+                        case 'year':
+                            const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+                            if (transactionDate < yearAgo) return false;
+                            break;
+                    }
+                }
+                
+                // Type filter
+                if (typeFilter !== 'all' && transaction.type !== typeFilter) {
+                    return false;
+                }
+                
+                // Status filter
+                if (statusFilter !== 'all' && (transaction.status || 'completed') !== statusFilter) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            currentPage = 0;
+            displayTransactions();
+        }
+        
+        function applyCustomDateFilter() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate || !endDate) {
+                showAlert('Please select both start and end dates', 'danger');
+                return;
+            }
+            
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999); // Include the entire end date
+            
+            filteredTransactions = allTransactions.filter(transaction => {
+                const transactionDate = new Date(transaction.transaction_date || transaction.created_at);
+                return transactionDate >= start && transactionDate <= end;
+            });
+            
+            // Apply other filters too
+            const typeFilter = document.getElementById('typeFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            if (typeFilter !== 'all') {
+                filteredTransactions = filteredTransactions.filter(t => t.type === typeFilter);
+            }
+            
+            if (statusFilter !== 'all') {
+                filteredTransactions = filteredTransactions.filter(t => (t.status || 'completed') === statusFilter);
+            }
+            
+            currentPage = 0;
+            displayTransactions();
+        }
+        
+        function sortTransactions() {
+            const sortBy = document.getElementById('sortBy').value;
+            
+            filteredTransactions.sort((a, b) => {
+                switch (sortBy) {
+                    case 'date_desc':
+                        return new Date(b.transaction_date || b.created_at) - new Date(a.transaction_date || a.created_at);
+                    case 'date_asc':
+                        return new Date(a.transaction_date || a.created_at) - new Date(b.transaction_date || b.created_at);
+                    case 'amount_desc':
+                        return Math.abs(b.amount) - Math.abs(a.amount);
+                    case 'amount_asc':
+                        return Math.abs(a.amount) - Math.abs(b.amount);
+                    default:
+                        return 0;
+                }
+            });
+            
+            displayTransactions();
+        }
+        
+        function clearFilters() {
+            document.getElementById('dateFilter').value = 'all';
+            document.getElementById('typeFilter').value = 'all';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('sortBy').value = 'date_desc';
+            document.getElementById('customDateRange').style.display = 'none';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            
+            filteredTransactions = [...allTransactions];
+            currentPage = 0;
+            displayTransactions();
+        }
+        
+        function loadMoreTransactions() {
+            currentPage++;
+            displayTransactions();
+        }
+        
+        function refreshTransactions() {
+            loadTransactions();
+            showAlert('Transaction history refreshed!', 'success');
+        }
+        
+        function exportTransactions() {
+            if (filteredTransactions.length === 0) {
+                showAlert('No transactions to export', 'info');
+                return;
+            }
+            
+            // Create CSV content
+            const headers = ['Date', 'Type', 'Description', 'Amount', 'Status', 'Payment Method'];
+            const csvContent = [
+                headers.join(','),
+                ...filteredTransactions.map(t => [
+                    new Date(t.transaction_date || t.created_at).toLocaleString(),
+                    t.type,
+                    `"${t.description || t.type}"`,
+                    t.amount,
+                    t.status || 'completed',
+                    t.payment_method || ''
+                ].join(','))
+            ].join('\n');
+            
+            // Download CSV
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `qless-transactions-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            showAlert('Transaction history exported!', 'success');
+        }
+        
+        async function viewTransactionDetails(transactionId) {
+            const transaction = allTransactions.find(t => t.transaction_id === transactionId);
+            if (!transaction) return;
+            
+            document.getElementById('modalTransactionTitle').textContent = `Transaction #${transactionId}`;
+            
+            const detailsHTML = `
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #007bff; margin-bottom: 15px;">Transaction Information</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <strong>Transaction ID:</strong><br>
+                            <span style="font-family: monospace;">${transaction.transaction_id}</span>
+                        </div>
+                        <div>
+                            <strong>Date & Time:</strong><br>
+                            ${new Date(transaction.transaction_date || transaction.created_at).toLocaleString()}
+                        </div>
+                        <div>
+                            <strong>Type:</strong><br>
+                            ${transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
+                        </div>
+                        <div>
+                            <strong>Status:</strong><br>
+                            <span style="color: ${transaction.status === 'completed' ? '#28a745' : transaction.status === 'pending' ? '#fd7e14' : '#dc3545'};">
+                                ${(transaction.status || 'completed').toUpperCase()}
+                            </span>
+                        </div>
+                        <div>
+                            <strong>Amount:</strong><br>
+                            <span style="font-size: 1.2em; font-weight: bold;">$${Math.abs(transaction.amount).toFixed(2)}</span>
+                        </div>
+                        <div>
+                            <strong>Payment Method:</strong><br>
+                            ${transaction.payment_method || 'N/A'}
+                        </div>
+                    </div>
+                </div>
+                
+                ${transaction.merchant ? `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #007bff; margin-bottom: 10px;">Merchant Information</h4>
+                        <p><strong>Merchant:</strong> ${transaction.merchant}</p>
+                        ${transaction.merchant_address ? `<p><strong>Address:</strong> ${transaction.merchant_address}</p>` : ''}
+                    </div>
+                ` : ''}
+                
+                ${transaction.items && transaction.items.length > 0 ? `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #007bff; margin-bottom: 10px;">Order Items</h4>
+                        <div style="border: 1px solid #ddd; border-radius: 4px;">
+                            ${transaction.items.map(item => `
+                                <div style="padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: between;">
+                                    <div>
+                                        <strong>${item.name}</strong><br>
+                                        <small style="color: #666;">Qty: ${item.quantity}</small>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        $${(item.price * item.quantity).toFixed(2)}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${transaction.notes ? `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #007bff; margin-bottom: 10px;">Notes</h4>
+                        <p style="background: #f8f9fa; padding: 10px; border-radius: 4px;">${transaction.notes}</p>
+                    </div>
+                ` : ''}
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    ${transaction.type === 'purchase' && transaction.status === 'completed' ? `
+                        <button onclick="requestRefund('${transactionId}')" style="background: #fd7e14; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; flex: 1;">
+                            Request Refund
+                        </button>
+                    ` : ''}
+                    <button onclick="closeTransactionModal()" style="background: #6c757d; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; flex: 1;">
+                        Close
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('modalTransactionContent').innerHTML = detailsHTML;
+            document.getElementById('transactionModal').style.display = 'block';
+        }
+        
+        function closeTransactionModal() {
+            document.getElementById('transactionModal').style.display = 'none';
+        }
+        
+        async function requestRefund(transactionId) {
+            if (!confirm('Are you sure you want to request a refund for this transaction?')) {
+                return;
+            }
+            
+            const userId = sessionStorage.getItem("user_id");
+            
+            try {
+                // This would typically be a separate refund API endpoint
+                const response = await fetch(`${API_BASE_URL}/api/transaction`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        type: 'refund',
+                        original_transaction_id: transactionId,
+                        description: 'Refund request',
+                        status: 'pending'
+                    })
+                });
+                
+                if (response.ok) {
+                    showAlert('Refund request submitted successfully!', 'success');
+                    closeTransactionModal();
+                    refreshTransactions();
+                } else {
+                    showAlert('Failed to submit refund request', 'danger');
+                }
+            } catch (error) {
+                console.error('Error requesting refund:', error);
+                showAlert('Error submitting refund request', 'danger');
+            }
+        }
+        
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('qless_cart') || '[]');
+            document.getElementById('cartCount').textContent = cart.length;
+        }
+        
+        function logout() {
+            sessionStorage.removeItem("user_id");
+            sessionStorage.removeItem("user");
+            localStorage.removeItem("qless_cart");
+            window.location.href = "index.html";
+        }
+        
+        function showAlert(message, type) {
+            const alertDiv = document.getElementById('alertMessage');
+            alertDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            alertDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('transactionModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeTransactionModal();
+            }
+        });
+        
+        // For demo purposes, add some sample transactions if API fails
+        setTimeout(() => {
+            if (allTransactions.length === 0) {
+                allTransactions = [
+                    {
+                        transaction_id: 'TXN001',
+                        type: 'purchase',
+                        description: 'Food purchase at Fresh Market',
+                        amount: -12.50,
+                        original_amount: -18.75,
+                        status: 'completed',
+                        transaction_date: new Date(Date.now() - 2*24*60*60*1000).toISOString(),
+                        merchant: 'Fresh Market',
+                        payment_method: 'wallet',
+                        items: [
+                            { name: 'Fresh Bread', quantity: 1, price: 3.50 },
+                            { name: 'Salad Mix', quantity: 1, price: 2.00 },
+                            { name: 'Fruit Bowl', quantity: 1, price: 4.00 }
+                        ]
+                    },
+                    {
+                        transaction_id: 'TXN002',
+                        type: 'topup',
+                        description: 'Wallet top-up via PayNow',
+                        amount: 50.00,
+                        status: 'completed',
+                        transaction_date: new Date(Date.now() - 7*24*60*60*1000).toISOString(),
+                        payment_method: 'paynow'
+                    }
+                ];
+                filteredTransactions = [...allTransactions];
+                displayTransactions();
+                updateSummaryStats();
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
