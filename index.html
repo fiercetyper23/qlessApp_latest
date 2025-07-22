@@ -10,137 +10,107 @@
             padding: 20px;
             background-color: #f5f5f5;
         }
-        
-        .text-center {
-            text-align: center;
-            margin-bottom: 30px;
+        .text-center { 
+            text-align: center; 
+            margin-bottom: 30px; 
         }
-        
         .text-center h1 {
             color: #2c3e50;
             margin-bottom: 5px;
         }
-        
         .text-center p {
             color: #7f8c8d;
-            margin-bottom: 0;
         }
-        
-        .tab-buttons {
-            display: flex;
-            background-color: #ecf0f1;
-            border-radius: 8px 8px 0 0;
-            overflow: hidden;
+        .tab-buttons { 
+            display: flex; 
+            background-color: #ecf0f1; 
+            border-radius: 8px 8px 0 0; 
+            overflow: hidden; 
         }
-        
-        .tab-button {
-            flex: 1;
-            padding: 12px 16px;
+        .tab-button { 
+            flex: 1; 
+            padding: 12px 16px; 
+            border: none; 
+            cursor: pointer; 
+            font-size: 14px; 
+            font-weight: 500; 
+            color: #7f8c8d; 
             background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            color: #7f8c8d;
-            transition: all 0.3s ease;
+            transition: all 0.3s ease; 
         }
-        
-        .tab-button.active {
-            background-color: #3498db;
-            color: white;
+        .tab-button.active { 
+            background-color: #3498db; 
+            color: white; 
         }
-        
         .tab-button:hover {
             background-color: #34495e;
             color: white;
         }
-        
-        .tab-content {
-            background: white;
-            padding: 24px;
-            border-radius: 0 0 8px 8px;
+        .tab-content { 
+            background: white; 
+            padding: 24px; 
+            border-radius: 0 0 8px 8px; 
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
-        .tab-panel {
-            display: none;
+        .tab-panel { 
+            display: none; 
         }
-        
-        .tab-panel.active {
-            display: block;
+        .tab-panel.active { 
+            display: block; 
         }
-        
-        .form-group {
-            margin-bottom: 16px;
+        .form-group { 
+            margin-bottom: 16px; 
         }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 500;
-            color: #2c3e50;
+        .form-group label { 
+            display: block; 
+            margin-bottom: 6px; 
+            font-weight: 500; 
+            color: #2c3e50; 
         }
-        
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #bdc3c7;
-            border-radius: 4px;
+        .form-group input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #bdc3c7; 
+            border-radius: 4px; 
             font-size: 14px;
             box-sizing: border-box;
         }
-        
         .form-group input:focus {
             outline: none;
             border-color: #3498db;
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
-        
-        button[type="submit"] {
-            width: 100%;
-            padding: 12px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
+        button[type="submit"] { 
+            width: 100%; 
+            padding: 12px; 
+            background-color: #3498db; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            font-size: 16px; 
             font-weight: 500;
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
-        
         button[type="submit"]:hover {
             background-color: #2980b9;
         }
-        
-        button[type="submit"]:active {
-            transform: translateY(1px);
+        .error-message, .success-message { 
+            padding: 10px; 
+            border-radius: 4px; 
+            margin-bottom: 16px; 
+            font-size: 14px; 
         }
-        
-        .error-message, .success-message {
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 16px;
-            font-size: 14px;
+        .error-message { 
+            background-color: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb; 
         }
-        
-        .error-message {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .success-message { 
+            background-color: #d4edda; 
+            color: #155724; 
+            border: 1px solid #c3e6cb; 
         }
-        
-        .success-message {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .loading {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-
         .debug-info {
             background: #f8f9fa;
             border: 1px solid #dee2e6;
@@ -149,6 +119,10 @@
             margin-bottom: 20px;
             font-size: 12px;
             color: #6c757d;
+        }
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -160,17 +134,15 @@
 
     <!-- Debug Information -->
     <div class="debug-info" id="debugInfo">
-        Loading AWS SDK...
+        ✅ CDN-Free Authentication Ready - No external dependencies
     </div>
 
-    <!-- Tab Buttons -->
     <div class="tab-buttons">
         <button class="tab-button active" onclick="showTab('login')">Login</button>
         <button class="tab-button" onclick="showTab('register')">Register</button>
     </div>
 
     <div class="tab-content">
-        <!-- Login Tab -->
         <div id="login" class="tab-panel active">
             <div id="loginMessage"></div>
             <form id="loginForm" onsubmit="handleLogin(event)">
@@ -186,7 +158,6 @@
             </form>
         </div>
 
-        <!-- Register Tab -->
         <div id="register" class="tab-panel">
             <div id="registerMessage"></div>
             <form id="registerForm" onsubmit="handleRegister(event)">
@@ -204,64 +175,29 @@
         </div>
     </div>
 
-    <!-- AWS SDK v3 - More reliable than Amplify -->
-    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.24.min.js"></script>
-    
     <script>
-        // AWS Cognito Configuration
+        // AWS Cognito Configuration - Your actual credentials
         const REGION = 'ap-southeast-1';
         const USER_POOL_ID = 'ap-southeast-1_szxWb9FAi';
         const CLIENT_ID = '4u2b255urckpnbs7l6i99kfd5k';
         
-        let cognitoIdentityServiceProvider;
-        let userPool;
-
-        function updateDebugInfo(message) {
+        function updateStatus(message) {
             document.getElementById('debugInfo').textContent = message;
         }
 
-        function initializeAWS() {
-            try {
-                if (typeof AWS === 'undefined') {
-                    updateDebugInfo('❌ AWS SDK not loaded');
-                    return false;
-                }
-
-                // Configure AWS region
-                AWS.config.region = REGION;
-                
-                // Create Cognito Identity Service Provider
-                cognitoIdentityServiceProvider = new AWS.CognitoIdentityServiceProvider({
-                    region: REGION
-                });
-
-                updateDebugInfo('✅ AWS SDK loaded and configured successfully!');
-                console.log('✅ AWS SDK initialized');
-                return true;
-            } catch (error) {
-                updateDebugInfo(`❌ AWS SDK initialization error: ${error.message}`);
-                return false;
-            }
+        function showTab(tabId) {
+            document.querySelectorAll(".tab-panel").forEach(t => t.classList.remove("active"));
+            document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
+            document.getElementById(tabId).classList.add("active");
+            document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`).classList.add("active");
         }
 
-        // Initialize when page loads
-        window.addEventListener('load', () => {
+        function showMessage(id, message, isError = false) {
+            const element = document.getElementById(id);
+            element.innerHTML = `<div class="${isError ? 'error-message' : 'success-message'}">${message}</div>`;
             setTimeout(() => {
-                if (initializeAWS()) {
-                    updateDebugInfo('✅ Ready for authentication!');
-                } else {
-                    updateDebugInfo('❌ Failed to initialize AWS SDK');
-                    showMessage('registerMessage', 'Unable to load authentication. Please refresh the page.', true);
-                }
-            }, 1000);
-        });
-
-        function showMessage(elementId, message, isError = false) {
-            const messageElement = document.getElementById(elementId);
-            messageElement.innerHTML = `<div class="${isError ? 'error-message' : 'success-message'}">${message}</div>`;
-            setTimeout(() => {
-                messageElement.innerHTML = '';
-            }, 10000);
+                element.innerHTML = '';
+            }, 8000);
         }
 
         function setLoading(formId, isLoading) {
@@ -273,24 +209,50 @@
             }
         }
 
+        // Direct AWS Cognito API calls using fetch (no CDN dependencies)
+        async function callCognitoAPI(action, body) {
+            const url = `https://cognito-idp.${REGION}.amazonaws.com/`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-amz-json-1.1',
+                        'X-Amz-Target': `AWSCognitoIdentityProviderService.${action}`
+                    },
+                    body: JSON.stringify(body)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    let errorData;
+                    try {
+                        errorData = JSON.parse(errorText);
+                    } catch {
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    }
+                    throw new Error(errorData.message || errorData.__type || 'Request failed');
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error(`Cognito API Error (${action}):`, error);
+                throw error;
+            }
+        }
+
         async function handleRegister(event) {
             event.preventDefault();
-            
-            if (!cognitoIdentityServiceProvider) {
-                showMessage('registerMessage', 'AWS SDK not initialized. Please refresh the page.', true);
-                return;
-            }
-            
             setLoading('registerForm', true);
 
-            const email = document.getElementById("registerEmail").value;
-            const password = document.getElementById("registerPassword").value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
 
             try {
-                console.log('Attempting to register with:', { email, password: '***' });
-                updateDebugInfo('🔄 Registering user...');
+                console.log('🔄 Starting registration for:', email);
+                updateStatus('🔄 Registering user...');
 
-                const params = {
+                const result = await callCognitoAPI('SignUp', {
                     ClientId: CLIENT_ID,
                     Username: email,
                     Password: password,
@@ -300,20 +262,28 @@
                             Value: email
                         }
                     ]
-                };
+                });
 
-                const result = await cognitoIdentityServiceProvider.signUp(params).promise();
-                
                 showMessage('registerMessage', 
                     'Registration successful! Please check your email for the verification code.');
                 console.log('✅ Registration successful:', result);
-                updateDebugInfo(`✅ Registration successful! UserSub: ${result.UserSub}`);
+                updateDebugInfo(`✅ Registration successful! User: ${email}`);
                 
             } catch (error) {
                 console.error('❌ Registration error:', error);
-                showMessage('registerMessage', 
-                    `Registration failed: ${error.message}`, true);
-                updateDebugInfo(`❌ Registration failed: ${error.message}`);
+                let errorMessage = error.message;
+                
+                // Handle common registration errors
+                if (errorMessage.includes('UsernameExistsException')) {
+                    errorMessage = 'An account with this email already exists.';
+                } else if (errorMessage.includes('InvalidPasswordException')) {
+                    errorMessage = 'Password does not meet requirements.';
+                } else if (errorMessage.includes('InvalidParameterException')) {
+                    errorMessage = 'Invalid email or password format.';
+                }
+                
+                showMessage('registerMessage', `Registration failed: ${errorMessage}`, true);
+                updateDebugInfo(`❌ Registration failed: ${errorMessage}`);
             } finally {
                 setLoading('registerForm', false);
             }
@@ -321,69 +291,66 @@
 
         async function handleLogin(event) {
             event.preventDefault();
-            
-            if (!cognitoIdentityServiceProvider) {
-                showMessage('loginMessage', 'AWS SDK not initialized. Please refresh the page.', true);
-                return;
-            }
-            
             setLoading('loginForm', true);
 
-            const email = document.getElementById("loginEmail").value;
-            const password = document.getElementById("loginPassword").value;
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
 
             try {
-                console.log('Attempting to login with:', { email, password: '***' });
-                updateDebugInfo('🔄 Signing in...');
+                console.log('🔄 Starting login for:', email);
+                updateStatus('🔄 Signing in...');
 
-                const params = {
+                const result = await callCognitoAPI('InitiateAuth', {
                     AuthFlow: 'USER_PASSWORD_AUTH',
                     ClientId: CLIENT_ID,
                     AuthParameters: {
                         USERNAME: email,
                         PASSWORD: password
                     }
-                };
+                });
 
-                const result = await cognitoIdentityServiceProvider.initiateAuth(params).promise();
-                
-                if (result.AuthenticationResult) {
+                if (result.AuthenticationResult && result.AuthenticationResult.AccessToken) {
                     const accessToken = result.AuthenticationResult.AccessToken;
                     showMessage('loginMessage', `Login successful! Welcome, ${email}!`);
                     console.log('✅ Login successful:', result);
                     console.log('✅ Access Token:', accessToken);
                     updateDebugInfo(`✅ Logged in as: ${email}`);
+                } else if (result.ChallengeName) {
+                    throw new Error(`Authentication challenge required: ${result.ChallengeName}`);
                 } else {
-                    throw new Error('Authentication failed - no token received');
+                    throw new Error('Login succeeded but no token received');
                 }
                 
             } catch (error) {
                 console.error('❌ Login error:', error);
+                let errorMessage = error.message;
                 
-                let errorMessage = 'Login failed: ';
-                if (error.code === 'UserNotConfirmedException') {
+                // Handle common login errors
+                if (errorMessage.includes('UserNotConfirmedException')) {
                     errorMessage = 'Please verify your email address first. Check your inbox for the verification code.';
-                } else if (error.code === 'NotAuthorizedException') {
+                } else if (errorMessage.includes('NotAuthorizedException')) {
                     errorMessage = 'Invalid email or password. Please try again.';
-                } else {
-                    errorMessage += error.message;
+                } else if (errorMessage.includes('UserNotFoundException')) {
+                    errorMessage = 'No account found with this email address.';
+                } else if (errorMessage.includes('InvalidParameterException')) {
+                    errorMessage = 'Please check your email and password format.';
+                } else if (errorMessage.includes('USER_PASSWORD_AUTH')) {
+                    errorMessage = 'Login method not enabled. Please contact support.';
                 }
                 
-                showMessage('loginMessage', errorMessage, true);
-                updateDebugInfo(`❌ Login failed: ${error.message}`);
+                showMessage('loginMessage', `Login failed: ${errorMessage}`, true);
+                updateDebugInfo(`❌ Login failed: ${errorMessage}`);
             } finally {
                 setLoading('loginForm', false);
             }
         }
 
-        function showTab(tabId) {
-            const tabs = document.querySelectorAll(".tab-panel");
-            const buttons = document.querySelectorAll(".tab-button");
-            tabs.forEach(tab => tab.classList.remove("active"));
-            buttons.forEach(btn => btn.classList.remove("active"));
-            document.getElementById(tabId).classList.add("active");
-            document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`).classList.add("active");
-        }
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            updateDebugInfo('✅ CDN-free authentication ready!');
+            console.log('✅ CDN-free Cognito authentication initialized');
+            console.log('Config:', { REGION, USER_POOL_ID, CLIENT_ID });
+        });
     </script>
 </body>
 </html>
