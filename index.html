@@ -189,30 +189,35 @@
         </div>
     </div>
 
-    <!-- Load AWS Amplify -->
-    <script src="https://unpkg.com/aws-amplify@5.3.14/dist/aws-amplify.umd.min.js"></script>
+    <!-- Load AWS Amplify - FIXED VERSION -->
+    <script src="https://unpkg.com/@aws-amplify/core@5.8.5/dist/aws-amplify-core.min.js"></script>
+    <script src="https://unpkg.com/@aws-amplify/auth@5.6.5/dist/aws-amplify-auth.min.js"></script>
     
     <script>
-        // Configure Amplify
-        const { Amplify, Auth } = window.aws_amplify_core || window.aws_amplify;
+        // FIXED: Access Amplify and Auth correctly
+        const { Amplify } = window.aws_amplify_core;
+        const { Auth } = window.aws_amplify_auth;
         
-        // Configure Amplify with your Cognito settings
+        console.log('Amplify loaded:', !!Amplify);
+        console.log('Auth loaded:', !!Auth);
+        
+        // Configure Amplify with your UPDATED credentials
         Amplify.configure({
             Auth: {
-                region: 'ap-southeast-1', // Updated to match your region
-                userPoolId: 'ap-southeast-1_szxWb9FAi', // Your actual User Pool ID
-                userPoolWebClientId: '4u2b255urckpnbs7l6i99kfd5k', // Your actual App Client ID
+                region: 'ap-southeast-1',
+                userPoolId: 'ap-southeast-1_szxWb9FAi',
+                userPoolWebClientId: '4u2b255urckpnbs7l6i99kfd5k', // Your new App Client ID
                 mandatorySignIn: false,
                 authenticationFlowType: 'USER_SRP_AUTH'
-    }
-});
+            }
+        });
 
         function showMessage(elementId, message, isError = false) {
             const messageElement = document.getElementById(elementId);
             messageElement.innerHTML = `<div class="${isError ? 'error-message' : 'success-message'}">${message}</div>`;
             setTimeout(() => {
                 messageElement.innerHTML = '';
-            }, 5000);
+            }, 10000); // Show message for 10 seconds
         }
 
         function setLoading(formId, isLoading) {
@@ -232,6 +237,8 @@
             const password = document.getElementById("registerPassword").value;
 
             try {
+                console.log('Attempting to register with:', { email, password: '***' });
+                
                 const { user } = await Auth.signUp({
                     username: email,
                     password: password,
@@ -242,13 +249,10 @@
                 
                 showMessage('registerMessage', 
                     'Registration successful! Please check your email for the verification code.');
-                console.log('Registration successful:', user);
-                
-                // Optionally switch to login tab
-                // showTab('login');
+                console.log('✅ Registration successful:', user);
                 
             } catch (error) {
-                console.error('Registration error:', error);
+                console.error('❌ Registration error:', error);
                 showMessage('registerMessage', 
                     `Registration failed: ${error.message}`, true);
             } finally {
@@ -264,21 +268,28 @@
             const password = document.getElementById("loginPassword").value;
 
             try {
+                console.log('Attempting to login with:', { email, password: '***' });
+                
                 const user = await Auth.signIn(email, password);
                 
-                showMessage('loginMessage', 'Login successful!');
-                console.log('Login successful:', user);
+                showMessage('loginMessage', `Login successful! Welcome, ${email}!`);
+                console.log('✅ Login successful:', user);
                 
                 // Get the JWT token
                 const session = await Auth.currentSession();
                 const token = session.getAccessToken().getJwtToken();
-                console.log('Access Token:', token);
+                console.log('✅ Access Token:', token);
                 
-                // Redirect or perform next action here
-                // window.location.href = '/dashboard';
+                // Show user details
+                console.log('✅ User details:', {
+                    username: user.username,
+                    email: user.attributes?.email,
+                    emailVerified: user.attributes?.email_verified,
+                    userId: user.attributes?.sub
+                });
                 
             } catch (error) {
-                console.error('Login error:', error);
+                console.error('❌ Login error:', error);
                 
                 if (error.code === 'UserNotConfirmedException') {
                     showMessage('loginMessage', 
@@ -308,11 +319,10 @@
         window.addEventListener('load', async () => {
             try {
                 const user = await Auth.currentAuthenticatedUser();
-                console.log('User is already signed in:', user);
+                console.log('✅ User is already signed in:', user);
                 showMessage('loginMessage', `Welcome back, ${user.attributes.email}!`);
             } catch (error) {
-                // User is not signed in, which is fine
-                console.log('User is not signed in');
+                console.log('ℹ️ User is not signed in (this is normal for new users)');
             }
         });
     </script>
