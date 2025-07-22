@@ -160,7 +160,7 @@
 
     <!-- Debug Information -->
     <div class="debug-info" id="debugInfo">
-        Loading Amplify libraries...
+        Loading AWS SDK...
     </div>
 
     <!-- Tab Buttons -->
@@ -204,93 +204,57 @@
         </div>
     </div>
 
-    <!-- Try different CDN approach -->
-    <script src="https://cdn.jsdelivr.net/npm/aws-amplify@5.3.14/dist/aws-amplify.min.js"></script>
+    <!-- AWS SDK v3 - More reliable than Amplify -->
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.24.min.js"></script>
     
     <script>
-        let Amplify, Auth;
+        // AWS Cognito Configuration
+        const REGION = 'ap-southeast-1';
+        const USER_POOL_ID = 'ap-southeast-1_szxWb9FAi';
+        const CLIENT_ID = '4u2b255urckpnbs7l6i99kfd5k';
         
-        // Debug function to show loading status
+        let cognitoIdentityServiceProvider;
+        let userPool;
+
         function updateDebugInfo(message) {
             document.getElementById('debugInfo').textContent = message;
         }
-        
-        // Multiple attempts to access Amplify
-        function initializeAmplify() {
+
+        function initializeAWS() {
             try {
-                // Method 1: Try window.aws_amplify
-                if (window.aws_amplify) {
-                    updateDebugInfo('✅ Found aws_amplify in window');
-                    Amplify = window.aws_amplify.Amplify;
-                    Auth = window.aws_amplify.Auth;
-                    return true;
+                if (typeof AWS === 'undefined') {
+                    updateDebugInfo('❌ AWS SDK not loaded');
+                    return false;
                 }
+
+                // Configure AWS region
+                AWS.config.region = REGION;
                 
-                // Method 2: Try window.Amplify
-                if (window.Amplify) {
-                    updateDebugInfo('✅ Found Amplify in window');
-                    Amplify = window.Amplify;
-                    Auth = window.Auth;
-                    return true;
-                }
-                
-                // Method 3: Try accessing directly
-                if (typeof Amplify !== 'undefined') {
-                    updateDebugInfo('✅ Found Amplify globally');
-                    return true;
-                }
-                
-                updateDebugInfo('❌ Amplify not found - trying alternative CDN...');
-                return false;
+                // Create Cognito Identity Service Provider
+                cognitoIdentityServiceProvider = new AWS.CognitoIdentityServiceProvider({
+                    region: REGION
+                });
+
+                updateDebugInfo('✅ AWS SDK loaded and configured successfully!');
+                console.log('✅ AWS SDK initialized');
+                return true;
             } catch (error) {
-                updateDebugInfo(`❌ Error accessing Amplify: ${error.message}`);
+                updateDebugInfo(`❌ AWS SDK initialization error: ${error.message}`);
                 return false;
             }
         }
 
-        // Wait for script to load then initialize
+        // Initialize when page loads
         window.addEventListener('load', () => {
             setTimeout(() => {
-                if (initializeAmplify() && Amplify && Auth) {
-                    try {
-                        // Configure Amplify
-                        Amplify.configure({
-                            Auth: {
-                                region: 'ap-southeast-1',
-                                userPoolId: 'ap-southeast-1_szxWb9FAi',
-                                userPoolWebClientId: '4u2b255urckpnbs7l6i99kfd5k',
-                                mandatorySignIn: false,
-                                authenticationFlowType: 'USER_SRP_AUTH'
-                            }
-                        });
-                        
-                        updateDebugInfo('✅ Amplify configured successfully! Ready to use.');
-                        console.log('✅ Amplify and Auth are ready');
-                        
-                        // Check for existing user
-                        checkExistingUser();
-                        
-                    } catch (error) {
-                        updateDebugInfo(`❌ Configuration error: ${error.message}`);
-                    }
+                if (initializeAWS()) {
+                    updateDebugInfo('✅ Ready for authentication!');
                 } else {
-                    updateDebugInfo('❌ Failed to load Amplify libraries. Check network connection.');
-                    // Show fallback message
-                    showMessage('registerMessage', 'Unable to load authentication libraries. Please refresh the page.', true);
+                    updateDebugInfo('❌ Failed to initialize AWS SDK');
+                    showMessage('registerMessage', 'Unable to load authentication. Please refresh the page.', true);
                 }
-            }, 1000); // Wait 1 second for scripts to load
+            }, 1000);
         });
-
-        async function checkExistingUser() {
-            try {
-                const user = await Auth.currentAuthenticatedUser();
-                console.log('✅ User is already signed in:', user);
-                showMessage('loginMessage', `Welcome back, ${user.attributes.email}!`);
-                updateDebugInfo(`✅ Signed in as: ${user.attributes.email}`);
-            } catch (error) {
-                console.log('ℹ️ No user signed in (normal for new users)');
-            }
-        }
 
         function showMessage(elementId, message, isError = false) {
             const messageElement = document.getElementById(elementId);
@@ -312,8 +276,8 @@
         async function handleRegister(event) {
             event.preventDefault();
             
-            if (!Auth) {
-                showMessage('registerMessage', 'Authentication library not loaded. Please refresh the page.', true);
+            if (!cognitoIdentityServiceProvider) {
+                showMessage('registerMessage', 'AWS SDK not initialized. Please refresh the page.', true);
                 return;
             }
             
@@ -324,19 +288,26 @@
 
             try {
                 console.log('Attempting to register with:', { email, password: '***' });
-                
-                const { user } = await Auth.signUp({
-                    username: email,
-                    password: password,
-                    attributes: {
-                        email: email
-                    }
-                });
+                updateDebugInfo('🔄 Registering user...');
+
+                const params = {
+                    ClientId: CLIENT_ID,
+                    Username: email,
+                    Password: password,
+                    UserAttributes: [
+                        {
+                            Name: 'email',
+                            Value: email
+                        }
+                    ]
+                };
+
+                const result = await cognitoIdentityServiceProvider.signUp(params).promise();
                 
                 showMessage('registerMessage', 
                     'Registration successful! Please check your email for the verification code.');
-                console.log('✅ Registration successful:', user);
-                updateDebugInfo(`✅ Registration successful for: ${email}`);
+                console.log('✅ Registration successful:', result);
+                updateDebugInfo(`✅ Registration successful! UserSub: ${result.UserSub}`);
                 
             } catch (error) {
                 console.error('❌ Registration error:', error);
@@ -351,8 +322,8 @@
         async function handleLogin(event) {
             event.preventDefault();
             
-            if (!Auth) {
-                showMessage('loginMessage', 'Authentication library not loaded. Please refresh the page.', true);
+            if (!cognitoIdentityServiceProvider) {
+                showMessage('loginMessage', 'AWS SDK not initialized. Please refresh the page.', true);
                 return;
             }
             
@@ -363,18 +334,28 @@
 
             try {
                 console.log('Attempting to login with:', { email, password: '***' });
+                updateDebugInfo('🔄 Signing in...');
+
+                const params = {
+                    AuthFlow: 'USER_PASSWORD_AUTH',
+                    ClientId: CLIENT_ID,
+                    AuthParameters: {
+                        USERNAME: email,
+                        PASSWORD: password
+                    }
+                };
+
+                const result = await cognitoIdentityServiceProvider.initiateAuth(params).promise();
                 
-                const user = await Auth.signIn(email, password);
-                
-                showMessage('loginMessage', `Login successful! Welcome, ${email}!`);
-                console.log('✅ Login successful:', user);
-                
-                // Get the JWT token
-                const session = await Auth.currentSession();
-                const token = session.getAccessToken().getJwtToken();
-                console.log('✅ Access Token:', token);
-                
-                updateDebugInfo(`✅ Logged in as: ${email}`);
+                if (result.AuthenticationResult) {
+                    const accessToken = result.AuthenticationResult.AccessToken;
+                    showMessage('loginMessage', `Login successful! Welcome, ${email}!`);
+                    console.log('✅ Login successful:', result);
+                    console.log('✅ Access Token:', accessToken);
+                    updateDebugInfo(`✅ Logged in as: ${email}`);
+                } else {
+                    throw new Error('Authentication failed - no token received');
+                }
                 
             } catch (error) {
                 console.error('❌ Login error:', error);
