@@ -140,12 +140,27 @@
             opacity: 0.6;
             pointer-events: none;
         }
+
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
     <div class="text-center">
         <h1>QLess</h1>
         <p>The Sustainable Way to Makan</p>
+    </div>
+
+    <!-- Debug Information -->
+    <div class="debug-info" id="debugInfo">
+        Loading Amplify libraries...
     </div>
 
     <!-- Tab Buttons -->
@@ -189,35 +204,100 @@
         </div>
     </div>
 
-    <!-- Load AWS Amplify - FIXED VERSION -->
-    <script src="https://unpkg.com/@aws-amplify/core@5.8.5/dist/aws-amplify-core.min.js"></script>
-    <script src="https://unpkg.com/@aws-amplify/auth@5.6.5/dist/aws-amplify-auth.min.js"></script>
+    <!-- Try different CDN approach -->
+    <script src="https://cdn.jsdelivr.net/npm/aws-amplify@5.3.14/dist/aws-amplify.min.js"></script>
     
     <script>
-        // FIXED: Access Amplify and Auth correctly
-        const { Amplify } = window.aws_amplify_core;
-        const { Auth } = window.aws_amplify_auth;
+        let Amplify, Auth;
         
-        console.log('Amplify loaded:', !!Amplify);
-        console.log('Auth loaded:', !!Auth);
+        // Debug function to show loading status
+        function updateDebugInfo(message) {
+            document.getElementById('debugInfo').textContent = message;
+        }
         
-        // Configure Amplify with your UPDATED credentials
-        Amplify.configure({
-            Auth: {
-                region: 'ap-southeast-1',
-                userPoolId: 'ap-southeast-1_szxWb9FAi',
-                userPoolWebClientId: '4u2b255urckpnbs7l6i99kfd5k', // Your new App Client ID
-                mandatorySignIn: false,
-                authenticationFlowType: 'USER_SRP_AUTH'
+        // Multiple attempts to access Amplify
+        function initializeAmplify() {
+            try {
+                // Method 1: Try window.aws_amplify
+                if (window.aws_amplify) {
+                    updateDebugInfo('✅ Found aws_amplify in window');
+                    Amplify = window.aws_amplify.Amplify;
+                    Auth = window.aws_amplify.Auth;
+                    return true;
+                }
+                
+                // Method 2: Try window.Amplify
+                if (window.Amplify) {
+                    updateDebugInfo('✅ Found Amplify in window');
+                    Amplify = window.Amplify;
+                    Auth = window.Auth;
+                    return true;
+                }
+                
+                // Method 3: Try accessing directly
+                if (typeof Amplify !== 'undefined') {
+                    updateDebugInfo('✅ Found Amplify globally');
+                    return true;
+                }
+                
+                updateDebugInfo('❌ Amplify not found - trying alternative CDN...');
+                return false;
+            } catch (error) {
+                updateDebugInfo(`❌ Error accessing Amplify: ${error.message}`);
+                return false;
             }
+        }
+
+        // Wait for script to load then initialize
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (initializeAmplify() && Amplify && Auth) {
+                    try {
+                        // Configure Amplify
+                        Amplify.configure({
+                            Auth: {
+                                region: 'ap-southeast-1',
+                                userPoolId: 'ap-southeast-1_szxWb9FAi',
+                                userPoolWebClientId: '4u2b255urckpnbs7l6i99kfd5k',
+                                mandatorySignIn: false,
+                                authenticationFlowType: 'USER_SRP_AUTH'
+                            }
+                        });
+                        
+                        updateDebugInfo('✅ Amplify configured successfully! Ready to use.');
+                        console.log('✅ Amplify and Auth are ready');
+                        
+                        // Check for existing user
+                        checkExistingUser();
+                        
+                    } catch (error) {
+                        updateDebugInfo(`❌ Configuration error: ${error.message}`);
+                    }
+                } else {
+                    updateDebugInfo('❌ Failed to load Amplify libraries. Check network connection.');
+                    // Show fallback message
+                    showMessage('registerMessage', 'Unable to load authentication libraries. Please refresh the page.', true);
+                }
+            }, 1000); // Wait 1 second for scripts to load
         });
+
+        async function checkExistingUser() {
+            try {
+                const user = await Auth.currentAuthenticatedUser();
+                console.log('✅ User is already signed in:', user);
+                showMessage('loginMessage', `Welcome back, ${user.attributes.email}!`);
+                updateDebugInfo(`✅ Signed in as: ${user.attributes.email}`);
+            } catch (error) {
+                console.log('ℹ️ No user signed in (normal for new users)');
+            }
+        }
 
         function showMessage(elementId, message, isError = false) {
             const messageElement = document.getElementById(elementId);
             messageElement.innerHTML = `<div class="${isError ? 'error-message' : 'success-message'}">${message}</div>`;
             setTimeout(() => {
                 messageElement.innerHTML = '';
-            }, 10000); // Show message for 10 seconds
+            }, 10000);
         }
 
         function setLoading(formId, isLoading) {
@@ -231,6 +311,12 @@
 
         async function handleRegister(event) {
             event.preventDefault();
+            
+            if (!Auth) {
+                showMessage('registerMessage', 'Authentication library not loaded. Please refresh the page.', true);
+                return;
+            }
+            
             setLoading('registerForm', true);
 
             const email = document.getElementById("registerEmail").value;
@@ -250,11 +336,13 @@
                 showMessage('registerMessage', 
                     'Registration successful! Please check your email for the verification code.');
                 console.log('✅ Registration successful:', user);
+                updateDebugInfo(`✅ Registration successful for: ${email}`);
                 
             } catch (error) {
                 console.error('❌ Registration error:', error);
                 showMessage('registerMessage', 
                     `Registration failed: ${error.message}`, true);
+                updateDebugInfo(`❌ Registration failed: ${error.message}`);
             } finally {
                 setLoading('registerForm', false);
             }
@@ -262,6 +350,12 @@
 
         async function handleLogin(event) {
             event.preventDefault();
+            
+            if (!Auth) {
+                showMessage('loginMessage', 'Authentication library not loaded. Please refresh the page.', true);
+                return;
+            }
+            
             setLoading('loginForm', true);
 
             const email = document.getElementById("loginEmail").value;
@@ -280,27 +374,22 @@
                 const token = session.getAccessToken().getJwtToken();
                 console.log('✅ Access Token:', token);
                 
-                // Show user details
-                console.log('✅ User details:', {
-                    username: user.username,
-                    email: user.attributes?.email,
-                    emailVerified: user.attributes?.email_verified,
-                    userId: user.attributes?.sub
-                });
+                updateDebugInfo(`✅ Logged in as: ${email}`);
                 
             } catch (error) {
                 console.error('❌ Login error:', error);
                 
+                let errorMessage = 'Login failed: ';
                 if (error.code === 'UserNotConfirmedException') {
-                    showMessage('loginMessage', 
-                        'Please verify your email address first. Check your inbox for the verification code.', true);
+                    errorMessage = 'Please verify your email address first. Check your inbox for the verification code.';
                 } else if (error.code === 'NotAuthorizedException') {
-                    showMessage('loginMessage', 
-                        'Invalid email or password. Please try again.', true);
+                    errorMessage = 'Invalid email or password. Please try again.';
                 } else {
-                    showMessage('loginMessage', 
-                        `Login failed: ${error.message}`, true);
+                    errorMessage += error.message;
                 }
+                
+                showMessage('loginMessage', errorMessage, true);
+                updateDebugInfo(`❌ Login failed: ${error.message}`);
             } finally {
                 setLoading('loginForm', false);
             }
@@ -314,17 +403,6 @@
             document.getElementById(tabId).classList.add("active");
             document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`).classList.add("active");
         }
-
-        // Check if user is already authenticated on page load
-        window.addEventListener('load', async () => {
-            try {
-                const user = await Auth.currentAuthenticatedUser();
-                console.log('✅ User is already signed in:', user);
-                showMessage('loginMessage', `Welcome back, ${user.attributes.email}!`);
-            } catch (error) {
-                console.log('ℹ️ User is not signed in (this is normal for new users)');
-            }
-        });
     </script>
 </body>
 </html>
