@@ -199,13 +199,13 @@
         // Configure Amplify with your Cognito settings
         Amplify.configure({
             Auth: {
-                region: 'us-east-1',
-                userPoolId: 'us-east-1_tKaNJikTO',
-                userPoolWebClientId: '7lhfv84qm3fhls4d68fn87qsrn',
+                region: 'ap-southeast-1', // Updated to match your region
+                userPoolId: 'ap-southeast-1_szxWb9FAi', // Your actual User Pool ID
+                userPoolWebClientId: '3r97f96p6c389oee6b9rb4ve37', // Your actual App Client ID
                 mandatorySignIn: false,
                 authenticationFlowType: 'USER_SRP_AUTH'
-            }
-        });
+    }
+});
 
         function showMessage(elementId, message, isError = false) {
             const messageElement = document.getElementById(elementId);
