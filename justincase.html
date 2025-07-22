@@ -162,8 +162,12 @@
             <div id="registerMessage"></div>
             <form id="registerForm" onsubmit="handleRegister(event)">
                 <div class="form-group">
-                    <label for="registerName">Full Name:</label>
-                    <input type="text" id="registerName" required placeholder="e.g., John Doe">
+                    <label for="registerFirstName">First Name:</label>
+                    <input type="text" id="registerFirstName" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerLastName">Last Name:</label>
+                    <input type="text" id="registerLastName" required>
                 </div>
                 <div class="form-group">
                     <label for="registerEmail">Email:</label>
@@ -249,7 +253,6 @@
             event.preventDefault();
             setLoading('registerForm', true);
 
-            const fullName = document.getElementById('registerName').value;
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
 
@@ -265,18 +268,14 @@
                         {
                             Name: 'email',
                             Value: email
-                        },
-                        {
-                            Name: 'name',
-                            Value: fullName
                         }
                     ]
                 });
 
                 showMessage('registerMessage', 
-                    'Registration successful! Please check your email and click the verification link.');
+                    'Registration successful! Please check your email for the verification code.');
                 console.log('✅ Registration successful:', result);
-                updateStatus(`✅ Registration successful! User: ${email}`);
+                updateDebugInfo(`✅ Registration successful! User: ${email}`);
                 
             } catch (error) {
                 console.error('❌ Registration error:', error);
@@ -292,7 +291,7 @@
                 }
                 
                 showMessage('registerMessage', `Registration failed: ${errorMessage}`, true);
-                updateStatus(`❌ Registration failed: ${errorMessage}`);
+                updateDebugInfo(`❌ Registration failed: ${errorMessage}`);
             } finally {
                 setLoading('registerForm', false);
             }
@@ -323,7 +322,7 @@
                     showMessage('loginMessage', `Login successful! Welcome, ${email}!`);
                     console.log('✅ Login successful:', result);
                     console.log('✅ Access Token:', accessToken);
-                    updateStatus(`✅ Logged in as: ${email}`);
+                    updateDebugInfo(`✅ Logged in as: ${email}`);
                 } else if (result.ChallengeName) {
                     throw new Error(`Authentication challenge required: ${result.ChallengeName}`);
                 } else {
@@ -336,7 +335,7 @@
                 
                 // Handle common login errors
                 if (errorMessage.includes('UserNotConfirmedException')) {
-                    errorMessage = 'Please verify your email address first. Check your inbox for the verification link.';
+                    errorMessage = 'Please verify your email address first. Check your inbox for the verification code.';
                 } else if (errorMessage.includes('NotAuthorizedException')) {
                     errorMessage = 'Invalid email or password. Please try again.';
                 } else if (errorMessage.includes('UserNotFoundException')) {
@@ -348,7 +347,7 @@
                 }
                 
                 showMessage('loginMessage', `Login failed: ${errorMessage}`, true);
-                updateStatus(`❌ Login failed: ${errorMessage}`);
+                updateDebugInfo(`❌ Login failed: ${errorMessage}`);
             } finally {
                 setLoading('loginForm', false);
             }
@@ -356,7 +355,7 @@
 
         // Initialize on page load
         window.addEventListener('load', () => {
-            updateStatus('✅ CDN-free authentication ready!');
+            updateDebugInfo('✅ CDN-free authentication ready!');
             console.log('✅ CDN-free Cognito authentication initialized');
             console.log('Config:', { REGION, USER_POOL_ID, CLIENT_ID });
         });
