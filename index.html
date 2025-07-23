@@ -245,6 +245,21 @@
             }
         }
 
+        // Helper function to parse JWT token
+        function parseJWT(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (error) {
+                console.error('Error parsing JWT:', error);
+                return {};
+            }
+        }
+
         async function handleRegister(event) {
             event.preventDefault();
             setLoading('registerForm', true);
@@ -274,7 +289,7 @@
                 });
 
                 showMessage('registerMessage', 
-                    'Registration successful! Please check your email and click the verification link.');
+                    'Registration successful! Please check your email and click the verification link. After verification, you can log in and access the food menu.');
                 console.log('✅ Registration successful:', result);
                 updateStatus(`✅ Registration successful! User: ${email}`);
                 
@@ -320,10 +335,22 @@
 
                 if (result.AuthenticationResult && result.AuthenticationResult.AccessToken) {
                     const accessToken = result.AuthenticationResult.AccessToken;
-                    showMessage('loginMessage', `Login successful! Welcome, ${email}!`);
+                    
+                    // Store user info for the food page
+                    localStorage.setItem('userEmail', email);
+                    localStorage.setItem('accessToken', accessToken);
+                    localStorage.setItem('userName', result.AuthenticationResult.IdToken ? 
+                        parseJWT(result.AuthenticationResult.IdToken).name || email : email);
+                    
+                    showMessage('loginMessage', `Login successful! Redirecting to food menu...`);
                     console.log('✅ Login successful:', result);
                     console.log('✅ Access Token:', accessToken);
-                    updateStatus(`✅ Logged in as: ${email}`);
+                    updateStatus(`✅ Logged in as: ${email} - Redirecting...`);
+                    
+                    // Redirect to food listings page after 1 second
+                    setTimeout(() => {
+                        window.location.href = 'food.html';
+                    }, 1000);
                 } else if (result.ChallengeName) {
                     throw new Error(`Authentication challenge required: ${result.ChallengeName}`);
                 } else {
