@@ -342,26 +342,67 @@
                     localStorage.setItem('userName', result.AuthenticationResult.IdToken ? 
                         parseJWT(result.AuthenticationResult.IdToken).name || email : email);
                     
-                    showMessage('loginMessage', `Login successful! Redirecting to food menu...`);
+                    showMessage('loginMessage', `
+                        ✅ Login successful! 
+                        <br><br>
+                        <strong>Click here to continue:</strong><br>
+                        <a href="food.html" style="color: #3498db; text-decoration: underline; font-weight: bold;">
+                            🍛 Go to Food Menu
+                        </a>
+                        <br><br>
+                        <small>Redirecting automatically in 3 seconds...</small>
+                    `);
                     console.log('✅ Login successful:', result);
                     console.log('✅ Access Token:', accessToken);
                     updateStatus(`✅ Logged in as: ${email} - Redirecting...`);
                     
-                    // Redirect to food listings page after 1 second
+                    // Redirect to food listings page after 3 seconds (longer delay)
                     setTimeout(() => {
                         console.log('🔄 Attempting redirect to food.html...');
                         console.log('Current URL:', window.location.href);
-                        console.log('Target URL:', window.location.origin + '/food.html');
+                        console.log('Current pathname:', window.location.pathname);
+                        console.log('Base URL:', window.location.origin);
                         
-                        // Try different redirect approaches
+                        // Get the base URL properly
+                        const baseUrl = window.location.origin;
+                        const currentPath = window.location.pathname;
+                        
+                        // Calculate the correct food.html URL
+                        let foodUrl;
+                        
+                        if (currentPath === '/' || currentPath === '/index.html') {
+                            // We're at root or index.html
+                            foodUrl = baseUrl + '/food.html';
+                        } else if (currentPath.includes('/')) {
+                            // We might be in a subdirectory
+                            const pathParts = currentPath.split('/');
+                            pathParts.pop(); // Remove current file
+                            const directory = pathParts.join('/');
+                            foodUrl = baseUrl + directory + '/food.html';
+                        } else {
+                            // Fallback
+                            foodUrl = baseUrl + '/food.html';
+                        }
+                        
+                        console.log('Target food URL:', foodUrl);
+                        
                         try {
-                            window.location.href = 'food.html';
+                            // Use replace instead of href to avoid history issues
+                            window.location.replace(foodUrl);
                         } catch (error) {
                             console.error('❌ Redirect failed:', error);
-                            // Fallback: try absolute path
-                            window.location.href = window.location.origin + '/food.html';
+                            
+                            // Show manual link with absolute URL
+                            showMessage('loginMessage', `
+                                ✅ Login successful! But automatic redirect failed.<br><br>
+                                <strong>Please click this link manually:</strong><br>
+                                <a href="${foodUrl}" style="color: #3498db; text-decoration: underline; font-weight: bold; font-size: 16px;">
+                                    🍛 Go to Food Menu
+                                </a><br><br>
+                                <small>Target URL: ${foodUrl}</small>
+                            `, false);
                         }
-                    }, 1000);
+                    }, 3000);
                 } else if (result.ChallengeName) {
                     throw new Error(`Authentication challenge required: ${result.ChallengeName}`);
                 } else {
