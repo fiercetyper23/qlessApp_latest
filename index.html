@@ -349,7 +349,18 @@
                     
                     // Redirect to food listings page after 1 second
                     setTimeout(() => {
-                        window.location.href = 'food.html';
+                        console.log('🔄 Attempting redirect to food.html...');
+                        console.log('Current URL:', window.location.href);
+                        console.log('Target URL:', window.location.origin + '/food.html');
+                        
+                        // Try different redirect approaches
+                        try {
+                            window.location.href = 'food.html';
+                        } catch (error) {
+                            console.error('❌ Redirect failed:', error);
+                            // Fallback: try absolute path
+                            window.location.href = window.location.origin + '/food.html';
+                        }
                     }, 1000);
                 } else if (result.ChallengeName) {
                     throw new Error(`Authentication challenge required: ${result.ChallengeName}`);
