@@ -230,194 +230,162 @@
         🛒 Cart (<span id="cartCount">0</span>)
     </div>
 
-    <script>
-        // Your API Configuration
-        const API_BASE_URL = 'https://ilvqzjfhnk.execute-api.ap-southeast-1.amazonaws.com';
-        const ENDPOINTS = {
-            items: `${API_BASE_URL}/api/items`
-        };
+<script>
+    const API_BASE_URL = 'https://ilvqzjfhnk.execute-api.ap-southeast-1.amazonaws.com';
+    const ENDPOINTS = {
+        items: `${API_BASE_URL}/api/items`
+    };
 
-        // Global variables
-        let allFoodItems = [];
-        let cartItems = [];
+    let allFoodItems = [];
+    let cartItems = [];
 
-        // Update debug status
-        function updateStatus(message) {
-            document.getElementById('debugInfo').textContent = message;
+    function updateStatus(message) {
+        document.getElementById('debugInfo').textContent = message;
+    }
+
+    function showError(message) {
+        const container = document.getElementById('errorContainer');
+        container.innerHTML = `<div class="error-message">❌ ${message}</div>`;
+    }
+
+    function clearError() {
+        document.getElementById('errorContainer').innerHTML = '';
+    }
+
+    function isTokenValid(token) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const currentTime = Math.floor(Date.now() / 1000);
+            return payload.exp > currentTime;
+        } catch (err) {
+            return false;
+        }
+    }
+
+    function handleLogout() {
+        if (confirm('Are you sure you want to logout?')) {
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('accessToken');
+            window.location.href = 'index.html';
+        }
+    }
+
+    function renderFoodItems(items) {
+        const grid = document.getElementById('foodGrid');
+        if (items.length === 0) {
+            grid.innerHTML = '<div class="loading">No food items found</div>';
+            grid.style.display = 'block';
+            return;
         }
 
-        // Show error message
-        function showError(message) {
-            const container = document.getElementById('errorContainer');
-            container.innerHTML = `<div class="error-message">❌ ${message}</div>`;
-        }
-
-        // Clear error message
-        function clearError() {
-            document.getElementById('errorContainer').innerHTML = '';
-        }
-
-        // Load food items from API
-        async function loadFoodItems() {
-            try {
-                updateStatus('🔄 Fetching food items from ItemService...');
-                console.log('Calling API:', ENDPOINTS.items);
-
-                const response = await fetch(ENDPOINTS.items);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                console.log('API Response:', data);
-
-                // Handle response format (might be wrapped in body)
-                let items = data;
-                if (typeof data === 'string') {
-                    items = JSON.parse(data);
-                }
-                if (data.body) {
-                    items = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-                }
-
-                allFoodItems = Array.isArray(items) ? items : [items];
-                
-                if (allFoodItems.length === 0) {
-                    throw new Error('No food items found');
-                }
-
-                renderFoodItems(allFoodItems);
-                updateStatus(`✅ Loaded ${allFoodItems.length} food items successfully!`);
-                clearError();
-
-            } catch (error) {
-                console.error('❌ Error loading food items:', error);
-                showError(`Failed to load food items: ${error.message}`);
-                updateStatus(`❌ Failed to load food items: ${error.message}`);
-            } finally {
-                document.getElementById('loadingIndicator').style.display = 'none';
-            }
-        }
-
-        // Render food items in the grid
-        function renderFoodItems(items) {
-            const grid = document.getElementById('foodGrid');
-            
-            if (items.length === 0) {
-                grid.innerHTML = '<div class="loading">No food items found</div>';
-                grid.style.display = 'block';
-                return;
-            }
-
-            const itemsHTML = items.map(item => `
-                <div class="food-card" data-item-id="${item.item_id}">
-                    <div class="food-image">
-                        ${item.image_url ? 
-                            `<img src="${item.image_url}" alt="${item.item_name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">` : 
-                            '🍽️ ' + item.item_name
-                        }
-                    </div>
-                    <div class="food-info">
-                        <div class="food-name">${item.item_name || 'Unknown Item'}</div>
-                        <div class="food-description">${item.description || 'No description available'}</div>
-                        <div class="food-price">$${parseFloat(item.price || 0).toFixed(2)}</div>
-                        <div class="vendor-info">Vendor: ${item.vendor_id || 'Unknown'}</div>
-                        <div class="food-actions">
-                            <button class="btn btn-secondary" onclick="toggleFavorite('${item.item_id}', '${item.item_name}')">
-                                ❤️ Favorite
-                            </button>
-                            <button class="btn btn-primary" onclick="addToCart('${item.item_id}', '${item.item_name}', ${item.price})">
-                                🛒 Add to Cart
-                            </button>
-                        </div>
+        const itemsHTML = items.map(item => `
+            <div class="food-card" data-item-id="${item.item_id}">
+                <div class="food-image">
+                    ${item.image_url ? 
+                        `<img src="${item.image_url}" alt="${item.item_name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">` : 
+                        '🍽️ ' + item.item_name
+                    }
+                </div>
+                <div class="food-info">
+                    <div class="food-name">${item.item_name || 'Unknown Item'}</div>
+                    <div class="food-description">${item.description || 'No description available'}</div>
+                    <div class="food-price">$${parseFloat(item.price || 0).toFixed(2)}</div>
+                    <div class="vendor-info">Vendor: ${item.vendor_id || 'Unknown'}</div>
+                    <div class="food-actions">
+                        <button class="btn btn-secondary" onclick="toggleFavorite('${item.item_id}', '${item.item_name}')">❤️ Favorite</button>
+                        <button class="btn btn-primary" onclick="addToCart('${item.item_id}', '${item.item_name}', ${item.price})">🛒 Add to Cart</button>
                     </div>
                 </div>
-            `).join('');
+            </div>
+        `).join('');
 
-            grid.innerHTML = itemsHTML;
-            grid.style.display = 'grid';
+        grid.innerHTML = itemsHTML;
+        grid.style.display = 'grid';
+    }
+
+    function filterItems() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const filteredItems = allFoodItems.filter(item => 
+            (item.item_name || '').toLowerCase().includes(searchTerm) ||
+            (item.description || '').toLowerCase().includes(searchTerm)
+        );
+        renderFoodItems(filteredItems);
+    }
+
+    function addToCart(itemId, itemName, price) {
+        cartItems.push({ itemId, itemName, price, quantity: 1 });
+        updateCartIndicator();
+        updateStatus(`✅ Added "${itemName}" to cart!`);
+    }
+
+    function toggleFavorite(itemId, itemName) {
+        updateStatus(`❤️ Added "${itemName}" to favorites!`);
+    }
+
+    function updateCartIndicator() {
+        const indicator = document.getElementById('cartIndicator');
+        const count = document.getElementById('cartCount');
+
+        if (cartItems.length > 0) {
+            count.textContent = cartItems.length;
+            indicator.style.display = 'block';
+        } else {
+            indicator.style.display = 'none';
+        }
+    }
+
+    function viewCart() {
+        alert(`Cart has ${cartItems.length} items:\n${cartItems.map(item => `- ${item.itemName} ($${item.price})`).join('\n')}`);
+    }
+
+    async function loadFoodItems() {
+        try {
+            updateStatus('🔄 Fetching food items from ItemService...');
+            const response = await fetch(ENDPOINTS.items);
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+            const data = await response.json();
+            let items = data;
+            if (typeof data === 'string') items = JSON.parse(data);
+            if (data.body) items = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+
+            allFoodItems = Array.isArray(items) ? items : [items];
+            if (allFoodItems.length === 0) throw new Error('No food items found');
+
+            renderFoodItems(allFoodItems);
+            updateStatus(`✅ Loaded ${allFoodItems.length} food items successfully!`);
+            clearError();
+        } catch (error) {
+            console.error('❌ Error loading food items:', error);
+            showError(`Failed to load food items: ${error.message}`);
+            updateStatus(`❌ Failed to load food items: ${error.message}`);
+        } finally {
+            document.getElementById('loadingIndicator').style.display = 'none';
+        }
+    }
+
+    // Run on page load
+    window.addEventListener('load', () => {
+        console.log('🍛 Food Listings Page Loaded');
+
+        const accessToken = localStorage.getItem('accessToken');
+        const userEmail = localStorage.getItem('userEmail');
+        const userName = localStorage.getItem('userName');
+
+        if (!accessToken || !isTokenValid(accessToken)) {
+            alert('Session expired or invalid. Please log in again.');
+            localStorage.clear();
+            window.location.href = 'index.html';
+            return;
         }
 
-        // Filter items based on search
-        function filterItems() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const filteredItems = allFoodItems.filter(item => 
-                (item.item_name || '').toLowerCase().includes(searchTerm) ||
-                (item.description || '').toLowerCase().includes(searchTerm)
-            );
-            renderFoodItems(filteredItems);
-        }
+        document.getElementById('userWelcome').textContent = 
+            `Welcome, ${userName || userEmail}! Browse our delicious food items`;
 
-        // Add item to cart (placeholder)
-        function addToCart(itemId, itemName, price) {
-            cartItems.push({ itemId, itemName, price, quantity: 1 });
-            updateCartIndicator();
-            updateStatus(`✅ Added "${itemName}" to cart!`);
-            console.log('Added to cart:', { itemId, itemName, price });
-        }
+        loadFoodItems();
+    });
+</script>
 
-        // Toggle favorite (placeholder)
-        function toggleFavorite(itemId, itemName) {
-            updateStatus(`❤️ Added "${itemName}" to favorites!`);
-            console.log('Toggled favorite:', { itemId, itemName });
-        }
-
-        // Update cart indicator
-        function updateCartIndicator() {
-            const indicator = document.getElementById('cartIndicator');
-            const count = document.getElementById('cartCount');
-            
-            if (cartItems.length > 0) {
-                count.textContent = cartItems.length;
-                indicator.style.display = 'block';
-            } else {
-                indicator.style.display = 'none';
-            }
-        }
-
-        // View cart (placeholder)
-        function viewCart() {
-            alert(`Cart has ${cartItems.length} items:\n${cartItems.map(item => `- ${item.itemName} ($${item.price})`).join('\n')}`);
-        }
-
-        // Handle logout
-        function handleLogout() {
-            if (confirm('Are you sure you want to logout?')) {
-                // Clear stored user data
-                localStorage.removeItem('userEmail');
-                localStorage.removeItem('userName');
-                localStorage.removeItem('accessToken');
-                
-                // Redirect back to login page
-                window.location.href = 'index.html';
-            }
-        }
-
-        // Initialize page
-        window.addEventListener('load', () => {
-            console.log('🍛 Food Listings Page Loaded');
-            console.log('API Endpoint:', ENDPOINTS.items);
-            
-            // Check if user is logged in
-            const userEmail = localStorage.getItem('userEmail');
-            const userName = localStorage.getItem('userName');
-            const accessToken = localStorage.getItem('accessToken');
-            
-            if (!userEmail || !accessToken) {
-                // User not logged in, redirect to login
-                alert('Please log in first!');
-                window.location.href = 'index.html';
-                return;
-            }
-            
-            // Update welcome message with user info
-            const welcomeElement = document.getElementById('userWelcome');
-            welcomeElement.textContent = `Welcome, ${userName || userEmail}! Browse our delicious food items`;
-            
-            // Load food items from API
-            loadFoodItems();
-        });
-    </script>
 </body>
 </html>
