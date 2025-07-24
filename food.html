@@ -231,7 +231,7 @@
     </div>
 
 <script>
-    const API_BASE_URL = 'https://ilvqzjfhnk.execute-api.ap-southeast-1.amazonaws.com';
+    const API_BASE_URL = 'https://ilvqzjfhnk.execute-api.ap-southeast-1.amazonaws.com/Default';
     const ENDPOINTS = {
         items: `${API_BASE_URL}/api/items`
     };
@@ -341,68 +341,56 @@
 
     // Replace the loadFoodItems function in your food.html with this updated version:
 
-async function loadFoodItems() {
-    try {
-        updateStatus('🔄 Fetching food items from ItemService...');
-        
-        // Get the access token from localStorage
-        const accessToken = localStorage.getItem('accessToken');
-        
-        // Create headers object with authentication
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-        
-        // Add Authorization header if token exists
-        if (accessToken) {
-            headers['Authorization'] = `Bearer ${accessToken}`;
-        }
-        
-        // Make the API call with headers
-        const response = await fetch(ENDPOINTS.items, {
-            method: 'GET',
-            headers: headers,
-            mode: 'cors' // Explicitly set CORS mode
-        });
-        
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('API Error Response:', errorText);
-            throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
-        }
+    async function loadFoodItems() {
+        try {
+            updateStatus('🔄 Fetching food items from ItemService...');
+            
+            // Simplified fetch - no Authorization header needed
+            const response = await fetch(ENDPOINTS.items, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                mode: 'cors'
+            });
+            
+            console.log('Response status:', response.status);
+            console.log('Response headers:', [...response.headers.entries()]);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('API Error Response:', errorText);
+                throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+            }
 
-        const data = await response.json();
-        console.log('Raw API response:', data);
-        
-        let items = data;
-        if (typeof data === 'string') items = JSON.parse(data);
-        if (data.body) items = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+            const data = await response.json();
+            console.log('Raw API response:', data);
+            
+            let items = data;
+            if (typeof data === 'string') items = JSON.parse(data);
+            if (data.body) items = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
 
-        allFoodItems = Array.isArray(items) ? items : [items];
-        if (allFoodItems.length === 0) throw new Error('No food items found');
+            allFoodItems = Array.isArray(items) ? items : [items];
+            if (allFoodItems.length === 0) throw new Error('No food items found');
 
-        renderFoodItems(allFoodItems);
-        updateStatus(`✅ Loaded ${allFoodItems.length} food items successfully!`);
-        clearError();
-        
-    } catch (error) {
-        console.error('❌ Error loading food items:', error);
-        
-        // More detailed error reporting
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            showError('Network error: Unable to connect to the API. This might be a CORS issue.');
-            updateStatus('❌ Network/CORS error - check browser console for details');
-        } else {
-            showError(`Failed to load food items: ${error.message}`);
-            updateStatus(`❌ Failed to load food items: ${error.message}`);
+            renderFoodItems(allFoodItems);
+            updateStatus(`✅ Loaded ${allFoodItems.length} food items successfully!`);
+            clearError();
+            
+        } catch (error) {
+            console.error('❌ Error loading food items:', error);
+            
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                showError('Network error: Unable to connect to the API. This might be a CORS issue.');
+                updateStatus('❌ Network/CORS error - check browser console for details');
+            } else {
+                showError(`Failed to load food items: ${error.message}`);
+                updateStatus(`❌ Failed to load food items: ${error.message}`);
+            }
+        } finally {
+            document.getElementById('loadingIndicator').style.display = 'none';
         }
-    } finally {
-        document.getElementById('loadingIndicator').style.display = 'none';
     }
-}
 
     // Run on page load
     window.addEventListener('load', () => {
