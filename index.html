@@ -1,8 +1,10 @@
+<!-- 🔽 Paste starts here -->
 <!DOCTYPE html>
 <html>
 <head>
     <title>QLess - Login</title>
     <style>
+        /* [Styles remain unchanged...] */
         body {
             font-family: Arial, sans-serif;
             max-width: 400px;
@@ -10,68 +12,56 @@
             padding: 20px;
             background-color: #f5f5f5;
         }
-        .text-center { 
-            text-align: center; 
-            margin-bottom: 30px; 
+        .text-center { text-align: center; margin-bottom: 30px; }
+        .text-center h1 { color: #2c3e50; margin-bottom: 5px; }
+        .text-center p { color: #7f8c8d; }
+        .tab-buttons {
+            display: flex;
+            background-color: #ecf0f1;
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
         }
-        .text-center h1 {
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-        .text-center p {
+        .tab-button {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
             color: #7f8c8d;
-        }
-        .tab-buttons { 
-            display: flex; 
-            background-color: #ecf0f1; 
-            border-radius: 8px 8px 0 0; 
-            overflow: hidden; 
-        }
-        .tab-button { 
-            flex: 1; 
-            padding: 12px 16px; 
-            border: none; 
-            cursor: pointer; 
-            font-size: 14px; 
-            font-weight: 500; 
-            color: #7f8c8d; 
             background: none;
-            transition: all 0.3s ease; 
+            transition: all 0.3s ease;
         }
-        .tab-button.active { 
-            background-color: #3498db; 
-            color: white; 
+        .tab-button.active {
+            background-color: #3498db;
+            color: white;
         }
         .tab-button:hover {
             background-color: #34495e;
             color: white;
         }
-        .tab-content { 
-            background: white; 
-            padding: 24px; 
-            border-radius: 0 0 8px 8px; 
+        .tab-content {
+            background: white;
+            padding: 24px;
+            border-radius: 0 0 8px 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        .tab-panel { 
-            display: none; 
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        .form-group {
+            margin-bottom: 16px;
         }
-        .tab-panel.active { 
-            display: block; 
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #2c3e50;
         }
-        .form-group { 
-            margin-bottom: 16px; 
-        }
-        .form-group label { 
-            display: block; 
-            margin-bottom: 6px; 
-            font-weight: 500; 
-            color: #2c3e50; 
-        }
-        .form-group input { 
-            width: 100%; 
-            padding: 12px; 
-            border: 1px solid #bdc3c7; 
-            border-radius: 4px; 
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
             font-size: 14px;
             box-sizing: border-box;
         }
@@ -80,14 +70,14 @@
             border-color: #3498db;
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
-        button[type="submit"] { 
-            width: 100%; 
-            padding: 12px; 
-            background-color: #3498db; 
-            color: white; 
-            border: none; 
-            border-radius: 4px; 
-            font-size: 16px; 
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
             font-weight: 500;
             cursor: pointer;
             transition: background-color 0.3s ease;
@@ -95,21 +85,21 @@
         button[type="submit"]:hover {
             background-color: #2980b9;
         }
-        .error-message, .success-message { 
-            padding: 10px; 
-            border-radius: 4px; 
-            margin-bottom: 16px; 
-            font-size: 14px; 
+        .error-message, .success-message {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 14px;
         }
-        .error-message { 
-            background-color: #f8d7da; 
-            color: #721c24; 
-            border: 1px solid #f5c6cb; 
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
-        .success-message { 
-            background-color: #d4edda; 
-            color: #155724; 
-            border: 1px solid #c3e6cb; 
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
         .debug-info {
             background: #f8f9fa;
@@ -132,7 +122,6 @@
         <p>The Sustainable Way to Makan</p>
     </div>
 
-    <!-- Debug Information -->
     <div class="debug-info" id="debugInfo">
         ✅ CDN-Free Authentication Ready - No external dependencies
     </div>
@@ -163,7 +152,7 @@
             <form id="registerForm" onsubmit="handleRegister(event)">
                 <div class="form-group">
                     <label for="registerName">Full Name:</label>
-                    <input type="text" id="registerName" required placeholder="e.g., John Doe">
+                    <input type="text" id="registerName" required>
                 </div>
                 <div class="form-group">
                     <label for="registerEmail">Email:</label>
@@ -172,7 +161,6 @@
                 <div class="form-group">
                     <label for="registerPassword">Password:</label>
                     <input type="password" id="registerPassword" required minlength="8">
-                    <small>Password must be at least 8 characters long</small>
                 </div>
                 <button type="submit">Register</button>
             </form>
@@ -180,11 +168,10 @@
     </div>
 
     <script>
-        // AWS Cognito Configuration - Your actual credentials
         const REGION = 'ap-southeast-1';
         const USER_POOL_ID = 'ap-southeast-1_9KWvZemLu';
         const CLIENT_ID = '34j8mbadeh1guqhe5lktl1upko';
-        
+
         function updateStatus(message) {
             document.getElementById('debugInfo').textContent = message;
         }
@@ -213,10 +200,8 @@
             }
         }
 
-        // Direct AWS Cognito API calls using fetch (no CDN dependencies)
         async function callCognitoAPI(action, body) {
             const url = `https://cognito-idp.${REGION}.amazonaws.com/`;
-            
             try {
                 const response = await fetch(url, {
                     method: 'POST',
@@ -226,7 +211,7 @@
                     },
                     body: JSON.stringify(body)
                 });
-                
+
                 if (!response.ok) {
                     const errorText = await response.text();
                     let errorData;
@@ -237,7 +222,7 @@
                     }
                     throw new Error(errorData.message || errorData.__type || 'Request failed');
                 }
-                
+
                 return await response.json();
             } catch (error) {
                 console.error(`Cognito API Error (${action}):`, error);
@@ -245,17 +230,14 @@
             }
         }
 
-        // Helper function to parse JWT token
         function parseJWT(token) {
             try {
                 const base64Url = token.split('.')[1];
                 const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
+                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
                 return JSON.parse(jsonPayload);
             } catch (error) {
-                console.error('Error parsing JWT:', error);
                 return {};
             }
         }
@@ -263,51 +245,23 @@
         async function handleRegister(event) {
             event.preventDefault();
             setLoading('registerForm', true);
-
             const fullName = document.getElementById('registerName').value;
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
 
             try {
-                console.log('🔄 Starting registration for:', email);
-                updateStatus('🔄 Registering user...');
-
                 const result = await callCognitoAPI('SignUp', {
                     ClientId: CLIENT_ID,
                     Username: email,
                     Password: password,
                     UserAttributes: [
-                        {
-                            Name: 'email',
-                            Value: email
-                        },
-                        {
-                            Name: 'name',
-                            Value: fullName
-                        }
+                        { Name: 'email', Value: email },
+                        { Name: 'name', Value: fullName }
                     ]
                 });
-
-                showMessage('registerMessage', 
-                    'Registration successful! Please check your email and click the verification link. After verification, you can log in and access the food menu.');
-                console.log('✅ Registration successful:', result);
-                updateStatus(`✅ Registration successful! User: ${email}`);
-                
+                showMessage('registerMessage', '✅ Registration successful! Please verify your email.');
             } catch (error) {
-                console.error('❌ Registration error:', error);
-                let errorMessage = error.message;
-                
-                // Handle common registration errors
-                if (errorMessage.includes('UsernameExistsException')) {
-                    errorMessage = 'An account with this email already exists.';
-                } else if (errorMessage.includes('InvalidPasswordException')) {
-                    errorMessage = 'Password does not meet requirements.';
-                } else if (errorMessage.includes('InvalidParameterException')) {
-                    errorMessage = 'Invalid email or password format.';
-                }
-                
-                showMessage('registerMessage', `Registration failed: ${errorMessage}`, true);
-                updateStatus(`❌ Registration failed: ${errorMessage}`);
+                showMessage('registerMessage', `❌ Registration failed: ${error.message}`, true);
             } finally {
                 setLoading('registerForm', false);
             }
@@ -316,14 +270,10 @@
         async function handleLogin(event) {
             event.preventDefault();
             setLoading('loginForm', true);
-
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
 
             try {
-                console.log('🔄 Starting login for:', email);
-                updateStatus('🔄 Signing in...');
-
                 const result = await callCognitoAPI('InitiateAuth', {
                     AuthFlow: 'USER_PASSWORD_AUTH',
                     ClientId: CLIENT_ID,
@@ -333,112 +283,37 @@
                     }
                 });
 
-                if (result.AuthenticationResult && result.AuthenticationResult.AccessToken) {
+                if (result.AuthenticationResult?.AccessToken) {
                     const accessToken = result.AuthenticationResult.AccessToken;
-                    
-                    // Store user info for the food page
+                    const idToken = result.AuthenticationResult.IdToken;
+                    const name = parseJWT(idToken).name || email;
                     localStorage.setItem('userEmail', email);
                     localStorage.setItem('accessToken', accessToken);
-                    localStorage.setItem('userName', result.AuthenticationResult.IdToken ? 
-                        parseJWT(result.AuthenticationResult.IdToken).name || email : email);
-                    
-                    showMessage('loginMessage', `
-                        ✅ Login successful! 
-                        <br><br>
-                        <strong>Click here to continue:</strong><br>
-                        <a href="food.html" style="color: #3498db; text-decoration: underline; font-weight: bold;">
-                            🍛 Go to Food Menu
-                        </a>
-                        <br><br>
-                        <small>Redirecting automatically in 3 seconds...</small>
-                    `);
-                    console.log('✅ Login successful:', result);
-                    console.log('✅ Access Token:', accessToken);
-                    updateStatus(`✅ Logged in as: ${email} - Redirecting...`);
-                    
-                    // Redirect to food listings page after 3 seconds (longer delay)
+                    localStorage.setItem('userName', name);
+
+                    showMessage('loginMessage', '✅ Login successful! Redirecting...');
+                    updateStatus(`✅ Logged in as: ${email}`);
+
+                    // ✅ SIMPLIFIED & FIXED REDIRECT
                     setTimeout(() => {
-                        console.log('🔄 Attempting redirect to food.html...');
-                        console.log('Current URL:', window.location.href);
-                        console.log('Current pathname:', window.location.pathname);
-                        console.log('Base URL:', window.location.origin);
-                        
-                        // Get the base URL properly
-                        const baseUrl = window.location.origin;
-                        const currentPath = window.location.pathname;
-                        
-                        // Calculate the correct food.html URL
-                        let foodUrl;
-                        
-                        if (currentPath === '/' || currentPath === '/index.html') {
-                            // We're at root or index.html
-                            foodUrl = baseUrl + '/food.html';
-                        } else if (currentPath.includes('/')) {
-                            // We might be in a subdirectory
-                            const pathParts = currentPath.split('/');
-                            pathParts.pop(); // Remove current file
-                            const directory = pathParts.join('/');
-                            foodUrl = baseUrl + directory + '/food.html';
-                        } else {
-                            // Fallback
-                            foodUrl = baseUrl + '/food.html';
-                        }
-                        
-                        console.log('Target food URL:', foodUrl);
-                        
-                        try {
-                            // Use replace instead of href to avoid history issues
-                            window.location.replace(foodUrl);
-                        } catch (error) {
-                            console.error('❌ Redirect failed:', error);
-                            
-                            // Show manual link with absolute URL
-                            showMessage('loginMessage', `
-                                ✅ Login successful! But automatic redirect failed.<br><br>
-                                <strong>Please click this link manually:</strong><br>
-                                <a href="${foodUrl}" style="color: #3498db; text-decoration: underline; font-weight: bold; font-size: 16px;">
-                                    🍛 Go to Food Menu
-                                </a><br><br>
-                                <small>Target URL: ${foodUrl}</small>
-                            `, false);
-                        }
+                        const foodUrl = `${window.location.origin}/food.html`;
+                        console.log('✅ Redirecting to:', foodUrl);
+                        window.location.href = foodUrl;
                     }, 3000);
-                } else if (result.ChallengeName) {
-                    throw new Error(`Authentication challenge required: ${result.ChallengeName}`);
                 } else {
                     throw new Error('Login succeeded but no token received');
                 }
-                
             } catch (error) {
-                console.error('❌ Login error:', error);
-                let errorMessage = error.message;
-                
-                // Handle common login errors
-                if (errorMessage.includes('UserNotConfirmedException')) {
-                    errorMessage = 'Please verify your email address first. Check your inbox for the verification link.';
-                } else if (errorMessage.includes('NotAuthorizedException')) {
-                    errorMessage = 'Invalid email or password. Please try again.';
-                } else if (errorMessage.includes('UserNotFoundException')) {
-                    errorMessage = 'No account found with this email address.';
-                } else if (errorMessage.includes('InvalidParameterException')) {
-                    errorMessage = 'Please check your email and password format.';
-                } else if (errorMessage.includes('USER_PASSWORD_AUTH')) {
-                    errorMessage = 'Login method not enabled. Please contact support.';
-                }
-                
-                showMessage('loginMessage', `Login failed: ${errorMessage}`, true);
-                updateStatus(`❌ Login failed: ${errorMessage}`);
+                showMessage('loginMessage', `❌ Login failed: ${error.message}`, true);
             } finally {
                 setLoading('loginForm', false);
             }
         }
 
-        // Initialize on page load
         window.addEventListener('load', () => {
             updateStatus('✅ CDN-free authentication ready!');
-            console.log('✅ CDN-free Cognito authentication initialized');
-            console.log('Config:', { REGION, USER_POOL_ID, CLIENT_ID });
         });
     </script>
 </body>
 </html>
+<!-- 🔼 Paste ends here -->
