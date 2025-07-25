@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>QLess - Profile</title>
+    <title>QLess - My Profile</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 600px;
+            max-width: 800px;
             margin: 50px auto;
             padding: 20px;
             background-color: #f5f5f5;
@@ -17,11 +17,14 @@
         .text-center h1 {
             color: #2c3e50;
         }
-        .profile-card {
+        .card {
             background: white;
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .profile-section {
             text-align: center;
         }
         .profile-img {
@@ -31,17 +34,108 @@
             background-color: #ecf0f1;
             object-fit: cover;
             margin-bottom: 20px;
+            border: 3px solid #bdc3c7;
         }
-        input[type="file"] {
+        .user-info {
+            margin: 20px 0;
+            text-align: left;
+        }
+        .user-info-item {
+            margin-bottom: 15px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+        .user-info-item label {
+            font-weight: bold;
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .user-info-item div {
+            color: #555;
+            font-size: 16px;
+        }
+        .wallet-section h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .balance-display {
+            font-size: 36px;
+            font-weight: bold;
+            color: #27ae60;
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            border: 2px solid #27ae60;
+        }
+        .wallet-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .wallet-info-item {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .wallet-info-item label {
+            font-weight: bold;
+            color: #7f8c8d;
+            display: block;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .wallet-info-item div {
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        .topup-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .topup-section h4 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        .topup-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .topup-controls input {
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 16px;
+            width: 120px;
+        }
+        .quick-amounts {
+            display: flex;
+            gap: 10px;
             margin: 15px 0;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         .btn {
             padding: 10px 20px;
-            margin: 5px;
             border: none;
             border-radius: 4px;
             font-size: 14px;
             cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
         .btn-primary {
             background-color: #3498db;
@@ -50,12 +144,12 @@
         .btn-primary:hover {
             background-color: #2980b9;
         }
-        .btn-danger {
-            background-color: #e74c3c;
+        .btn-success {
+            background-color: #27ae60;
             color: white;
         }
-        .btn-danger:hover {
-            background-color: #c0392b;
+        .btn-success:hover {
+            background-color: #229954;
         }
         .btn-secondary {
             background-color: #95a5a6;
@@ -64,75 +158,366 @@
         .btn-secondary:hover {
             background-color: #7f8c8d;
         }
+        .btn-quick {
+            background-color: #f39c12;
+            color: white;
+            padding: 8px 16px;
+        }
+        .btn-quick:hover {
+            background-color: #e67e22;
+        }
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .error-message, .success-message {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .back-button {
+            text-align: center;
+            margin-top: 30px;
+        }
     </style>
 </head>
 <body>
     <div class="text-center">
         <h1>My Profile</h1>
-        <p>Manage your profile picture</p>
+        <p>Manage your profile and wallet</p>
     </div>
 
-    <div class="profile-card">
-        <img id="profileImage" class="profile-img" src="https://via.placeholder.com/150" alt="Profile Picture">
-        <br>
-        <input type="file" id="fileInput" accept="image/*">
-        <br>
-        <button class="btn btn-primary" onclick="uploadPicture()">Upload</button>
-        <button class="btn btn-danger" onclick="removePicture()">Remove</button>
-        <button class="btn btn-secondary" onclick="window.location.href='food.html'">⬅ Back</button>
+    <!-- Debug Information -->
+    <div class="debug-info" id="debugInfo">
+        🔄 Loading profile data...
+    </div>
+
+    <!-- Profile Section -->
+    <div class="card">
+        <div class="profile-section">
+            <img id="profileImage" class="profile-img" src="https://via.placeholder.com/150" alt="Profile Picture">
+        </div>
+
+        <div class="user-info">
+            <div class="user-info-item">
+                <label>User ID:</label>
+                <div id="userId">Loading...</div>
+            </div>
+            <div class="user-info-item">
+                <label>Name:</label>
+                <div id="userName">Loading...</div>
+            </div>
+            <div class="user-info-item">
+                <label>Email:</label>
+                <div id="userEmail">Loading...</div>
+            </div>
+            <div class="user-info-item">
+                <label>Member Since:</label>
+                <div id="memberSince">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wallet Section -->
+    <div class="card">
+        <div class="wallet-section">
+            <h3>💰 My Wallet</h3>
+            
+            <div class="balance-display" id="walletBalance">Loading...</div>
+            
+            <div class="wallet-info">
+                <div class="wallet-info-item">
+                    <label>Wallet ID</label>
+                    <div id="walletId">Loading...</div>
+                </div>
+                <div class="wallet-info-item">
+                    <label>Last Updated</label>
+                    <div id="lastUpdated">Loading...</div>
+                </div>
+            </div>
+
+            <div id="walletMessage"></div>
+
+            <!-- Top Up Section -->
+            <div class="topup-section">
+                <h4>💳 Top Up Wallet</h4>
+                
+                <div class="quick-amounts">
+                    <button class="btn btn-quick" onclick="setTopupAmount(5)">+$5</button>
+                    <button class="btn btn-quick" onclick="setTopupAmount(10)">+$10</button>
+                    <button class="btn btn-quick" onclick="setTopupAmount(20)">+$20</button>
+                    <button class="btn btn-quick" onclick="setTopupAmount(50)">+$50</button>
+                </div>
+                
+                <div class="topup-controls">
+                    <span>$</span>
+                    <input type="number" id="topupAmount" placeholder="Enter amount" min="1" max="1000" step="0.01">
+                    <button class="btn btn-success" onclick="topupWallet()">💰 Top Up</button>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" onclick="refreshWallet()" style="margin-top: 15px; width: 100%;">
+                🔄 Refresh Balance
+            </button>
+        </div>
+    </div>
+
+    <div class="back-button">
+        <button class="btn btn-secondary" onclick="window.location.href='food.html'">⬅ Back to Food Menu</button>
     </div>
 
     <script>
-        const userEmail = localStorage.getItem('userEmail');
-        const userId = btoa(userEmail); // simple encoding if your DB uses base64 keys
-        const profileApi = `https://your-api-url.amazonaws.com/Default/api/users/${userId}`;
+        // Your actual API endpoints
+        const USER_API_BASE = 'https://pr2zhjynla.execute-api.ap-southeast-1.amazonaws.com/prod';
+        const WALLET_API_BASE = 'https://5mmvmq1789.execute-api.ap-southeast-1.amazonaws.com/prod';
+        
+        const ENDPOINTS = {
+            getUserProfile: `${USER_API_BASE}/api/users`, // GET /api/users/{user_id}
+            getUserWallet: `${WALLET_API_BASE}/api/wallets`, // GET /api/wallets/{user_id}
+            topupWallet: `${WALLET_API_BASE}/api/wallets/topup` // POST /api/wallets/topup
+        };
 
-        // Load user profile picture
-        window.addEventListener('load', async () => {
-            const res = await fetch(profileApi);
-            const data = await res.json();
-            if (data.profile_picture) {
-                document.getElementById('profileImage').src = data.profile_picture;
+        let currentUserId = null;
+        let currentUserData = null;
+        let currentWalletData = null;
+
+        function updateStatus(message) {
+            document.getElementById('debugInfo').textContent = message;
+        }
+
+        function showMessage(containerId, message, isError = false) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `<div class="${isError ? 'error-message' : 'success-message'}">${message}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        // Parse JWT to get user_id from custom attributes
+        function parseJWT(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
+                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (error) {
+                return {};
             }
-        });
+        }
 
-        async function uploadPicture() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
-            if (!file) return alert('Please select a file.');
+        // Get user_id from various sources
+        function getUserId() {
+            // Try to get from localStorage first
+            let userId = localStorage.getItem('userId');
+            if (userId) return userId;
 
-            // Convert to base64 (for simplicity; better to use S3 in production)
-            const reader = new FileReader();
-            reader.onload = async function (e) {
-                const base64Image = e.target.result;
+            // Try to get from ID token
+            const idToken = localStorage.getItem('idToken');
+            if (idToken) {
+                const tokenData = parseJWT(idToken);
+                userId = tokenData['custom:user_id'];
+                if (userId) {
+                    localStorage.setItem('userId', userId);
+                    return userId;
+                }
+            }
 
-                const res = await fetch(profileApi, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ profile_picture: base64Image })
+            return null;
+        }
+
+        // Load user profile data
+        async function loadUserProfile() {
+            try {
+                updateStatus('🔄 Loading user profile...');
+                
+                const response = await fetch(`${ENDPOINTS.getUserProfile}/${currentUserId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    }
                 });
 
-                if (res.ok) {
-                    alert('Profile picture updated!');
-                    document.getElementById('profileImage').src = base64Image;
-                } else {
-                    alert('Failed to update picture.');
+                if (!response.ok) {
+                    throw new Error(`Failed to load profile: ${response.statusText}`);
                 }
-            };
-            reader.readAsDataURL(file);
-        }
 
-        async function removePicture() {
-            const res = await fetch(profileApi, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ profile_picture: '' })
-            });
-            if (res.ok) {
-                alert('Profile picture removed.');
-                document.getElementById('profileImage').src = 'https://via.placeholder.com/150';
+                const data = await response.json();
+                currentUserData = data;
+
+                // Update UI
+                document.getElementById('userId').textContent = data.user_id || currentUserId;
+                document.getElementById('userName').textContent = data.name || 'N/A';
+                document.getElementById('userEmail').textContent = data.email || localStorage.getItem('userEmail');
+                document.getElementById('memberSince').textContent = data.created_at ? 
+                    new Date(data.created_at).toLocaleDateString() : 'N/A';
+
+                // Show profile picture if exists
+                if (data.profile_picture) {
+                    document.getElementById('profileImage').src = data.profile_picture;
+                }
+
+                updateStatus('✅ Profile loaded successfully');
+                
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                updateStatus(`⚠️ Could not load profile from API - using stored data`);
+                
+                // Fallback to stored data
+                document.getElementById('userId').textContent = currentUserId || 'N/A';
+                document.getElementById('userName').textContent = localStorage.getItem('userName') || 'N/A';
+                document.getElementById('userEmail').textContent = localStorage.getItem('userEmail') || 'N/A';
+                document.getElementById('memberSince').textContent = 'N/A';
             }
         }
+
+        // Load wallet data
+        async function loadWalletData() {
+            try {
+                updateStatus('🔄 Loading wallet data...');
+                
+                const response = await fetch(`${ENDPOINTS.getUserWallet}/${currentUserId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to load wallet: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                currentWalletData = data;
+
+                // Update UI
+                document.getElementById('walletBalance').textContent = `$${parseFloat(data.balance || 0).toFixed(2)}`;
+                document.getElementById('walletId').textContent = data.wallet_id || 'N/A';
+                document.getElementById('lastUpdated').textContent = data.last_updated ? 
+                    new Date(data.last_updated).toLocaleString() : 'N/A';
+
+                updateStatus('✅ Wallet data loaded successfully');
+                
+            } catch (error) {
+                console.error('Error loading wallet:', error);
+                showMessage('walletMessage', `Failed to load wallet: ${error.message}`, true);
+                
+                // Show default values
+                document.getElementById('walletBalance').textContent = '$0.00';
+                document.getElementById('walletId').textContent = 'N/A';
+                document.getElementById('lastUpdated').textContent = 'N/A';
+            }
+        }
+
+        // Set topup amount (quick buttons)
+        function setTopupAmount(amount) {
+            document.getElementById('topupAmount').value = amount;
+        }
+
+        // Top up wallet
+        async function topupWallet() {
+            const amount = parseFloat(document.getElementById('topupAmount').value);
+            
+            if (!amount || amount <= 0) {
+                showMessage('walletMessage', '❌ Please enter a valid amount.', true);
+                return;
+            }
+
+            if (amount > 1000) {
+                showMessage('walletMessage', '❌ Maximum top-up amount is $1000.', true);
+                return;
+            }
+
+            try {
+                updateStatus('🔄 Processing top-up...');
+
+                const response = await fetch(ENDPOINTS.topupWallet, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    },
+                    body: JSON.stringify({ 
+                        user_id: currentUserId,
+                        amount: amount 
+                    })
+                });
+
+                if (response.ok) {
+                    showMessage('walletMessage', `✅ Successfully topped up $${amount.toFixed(2)}!`);
+                    document.getElementById('topupAmount').value = '';
+                    // Refresh wallet balance
+                    await loadWalletData();
+                } else {
+                    const errorText = await response.text();
+                    throw new Error(`API Error: ${errorText}`);
+                }
+                
+            } catch (error) {
+                console.error('Error topping up wallet:', error);
+                showMessage('walletMessage', `❌ Failed to top up wallet: ${error.message}`, true);
+            }
+        }
+
+        // Refresh wallet balance
+        function refreshWallet() {
+            loadWalletData();
+        }
+
+        // Initialize page
+        window.addEventListener('load', async () => {
+            console.log('👤 Profile Page Loaded');
+
+            // Check authentication
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken) {
+                alert('Please log in first.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Get user ID
+            currentUserId = getUserId();
+            if (!currentUserId) {
+                updateStatus('❌ User ID not found. This might be because you registered before the new system was implemented.');
+                // Still show stored data
+                document.getElementById('userId').textContent = 'N/A';
+                document.getElementById('userName').textContent = localStorage.getItem('userName') || 'N/A';
+                document.getElementById('userEmail').textContent = localStorage.getItem('userEmail') || 'N/A';
+                document.getElementById('memberSince').textContent = 'N/A';
+                return;
+            }
+
+            console.log('🔍 Found User ID:', currentUserId);
+
+            // Load profile and wallet data
+            await Promise.all([
+                loadUserProfile(),
+                loadWalletData()
+            ]);
+        });
     </script>
 </body>
 </html>
