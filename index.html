@@ -122,7 +122,7 @@
     </div>
 
     <div class="debug-info" id="debugInfo">
-        ✅ CDN-Free Authentication Ready - No external dependencies
+        CDN-Free Authentication Ready - No external dependencies
     </div>
 
     <div class="tab-buttons">
@@ -258,9 +258,9 @@
                         { Name: 'name', Value: fullName }
                     ]
                 });
-                showMessage('registerMessage', '✅ Registration successful! Please verify your email.');
+                showMessage('registerMessage', 'Registration successful! Please verify your email.');
             } catch (error) {
-                showMessage('registerMessage', `❌ Registration failed: ${error.message}`, true);
+                showMessage('registerMessage', `Registration failed: ${error.message}`, true);
             } finally {
                 setLoading('registerForm', false);
             }
@@ -299,10 +299,10 @@
                         localStorage.setItem('userId', tokenData['custom:user_id']);
                         console.log('✅ User ID extracted:', tokenData['custom:user_id']);
                     } else {
-                        console.log('⚠️ No user_id found in token - user might have registered before the trigger was set up');
+                        console.log('No user_id found in token - user might have registered before the trigger was set up');
                     }
 
-                    showMessage('loginMessage', '✅ Login successful! Redirecting...');
+                    showMessage('loginMessage', 'Login successful! Redirecting...');
                     updateStatus(`✅ Logged in as: ${email}`);
 
                     // ✅ SIMPLIFIED & FIXED REDIRECT
@@ -315,14 +315,14 @@
                     throw new Error('Login succeeded but no token received');
                 }
             } catch (error) {
-                showMessage('loginMessage', `❌ Login failed: ${error.message}`, true);
+                showMessage('loginMessage', `Login failed: ${error.message}`, true);
             } finally {
                 setLoading('loginForm', false);
             }
         }
 
         window.addEventListener('load', () => {
-            updateStatus('✅ CDN-free authentication ready!');
+            updateStatus('CDN-free authentication ready!');
         });
     </script>
 </body>
