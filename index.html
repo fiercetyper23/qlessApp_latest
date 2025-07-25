@@ -1,4 +1,3 @@
-<!-- 🔽 Paste starts here -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -287,9 +286,21 @@
                     const accessToken = result.AuthenticationResult.AccessToken;
                     const idToken = result.AuthenticationResult.IdToken;
                     const name = parseJWT(idToken).name || email;
+                    
+                    // Store all tokens and user info
                     localStorage.setItem('userEmail', email);
                     localStorage.setItem('accessToken', accessToken);
+                    localStorage.setItem('idToken', idToken); // ✅ Store ID token for user_id extraction
                     localStorage.setItem('userName', name);
+                    
+                    // Try to extract and store user_id from ID token
+                    const tokenData = parseJWT(idToken);
+                    if (tokenData['custom:user_id']) {
+                        localStorage.setItem('userId', tokenData['custom:user_id']);
+                        console.log('✅ User ID extracted:', tokenData['custom:user_id']);
+                    } else {
+                        console.log('⚠️ No user_id found in token - user might have registered before the trigger was set up');
+                    }
 
                     showMessage('loginMessage', '✅ Login successful! Redirecting...');
                     updateStatus(`✅ Logged in as: ${email}`);
@@ -316,4 +327,3 @@
     </script>
 </body>
 </html>
-<!-- 🔼 Paste ends here -->
