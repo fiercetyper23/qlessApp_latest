@@ -209,7 +209,7 @@
 
     <!-- Debug Information -->
     <div class="debug-info" id="debugInfo">
-        🔄 Loading profile data...
+        Loading profile data...
     </div>
 
     <!-- Profile Section -->
@@ -241,7 +241,7 @@
     <!-- Wallet Section -->
     <div class="card">
         <div class="wallet-section">
-            <h3>💰 My Wallet</h3>
+            <h3>My Wallet</h3>
             
             <div class="balance-display" id="walletBalance">Loading...</div>
             
@@ -260,7 +260,7 @@
 
             <!-- Top Up Section -->
             <div class="topup-section">
-                <h4>💳 Top Up Wallet</h4>
+                <h4>Top Up Wallet</h4>
                 
                 <div class="quick-amounts">
                     <button class="btn btn-quick" onclick="setTopupAmount(5)">+$5</button>
@@ -272,12 +272,12 @@
                 <div class="topup-controls">
                     <span>$</span>
                     <input type="number" id="topupAmount" placeholder="Enter amount" min="1" max="1000" step="0.01">
-                    <button class="btn btn-success" onclick="topupWallet()">💰 Top Up</button>
+                    <button class="btn btn-success" onclick="topupWallet()">Top Up</button>
                 </div>
             </div>
 
             <button class="btn btn-secondary" onclick="refreshWallet()" style="margin-top: 15px; width: 100%;">
-                🔄 Refresh Balance
+                Refresh Balance
             </button>
         </div>
     </div>
@@ -349,7 +349,7 @@
         // Load user profile data
         async function loadUserProfile() {
             try {
-                updateStatus('🔄 Loading user profile...');
+                updateStatus('Loading user profile...');
                 
                 const response = await fetch(`${ENDPOINTS.getUserProfile}/${currentUserId}`, {
                     method: 'GET',
@@ -378,11 +378,11 @@
                     document.getElementById('profileImage').src = data.profile_picture;
                 }
 
-                updateStatus('✅ Profile loaded successfully');
+                updateStatus('Profile loaded successfully');
                 
             } catch (error) {
                 console.error('Error loading profile:', error);
-                updateStatus(`⚠️ Could not load profile from API - using stored data`);
+                updateStatus(`Could not load profile from API - using stored data`);
                 
                 // Fallback to stored data
                 document.getElementById('userId').textContent = currentUserId || 'N/A';
@@ -395,7 +395,7 @@
         // Load wallet data
         async function loadWalletData() {
             try {
-                updateStatus('🔄 Loading wallet data...');
+                updateStatus('Loading wallet data...');
                 
                 const response = await fetch(`${ENDPOINTS.getUserWallet}/${currentUserId}`, {
                     method: 'GET',
@@ -418,7 +418,7 @@
                 document.getElementById('lastUpdated').textContent = data.last_updated ? 
                     new Date(data.last_updated).toLocaleString() : 'N/A';
 
-                updateStatus('✅ Wallet data loaded successfully');
+                updateStatus('Wallet data loaded successfully');
                 
             } catch (error) {
                 console.error('Error loading wallet:', error);
@@ -441,17 +441,17 @@
             const amount = parseFloat(document.getElementById('topupAmount').value);
             
             if (!amount || amount <= 0) {
-                showMessage('walletMessage', '❌ Please enter a valid amount.', true);
+                showMessage('walletMessage', 'Please enter a valid amount.', true);
                 return;
             }
 
             if (amount > 1000) {
-                showMessage('walletMessage', '❌ Maximum top-up amount is $1000.', true);
+                showMessage('walletMessage', 'Maximum top-up amount is $1000.', true);
                 return;
             }
 
             try {
-                updateStatus('🔄 Processing top-up...');
+                updateStatus('Processing top-up...');
 
                 const response = await fetch(ENDPOINTS.topupWallet, {
                     method: 'POST',
@@ -466,7 +466,7 @@
                 });
 
                 if (response.ok) {
-                    showMessage('walletMessage', `✅ Successfully topped up $${amount.toFixed(2)}!`);
+                    showMessage('walletMessage', `Successfully topped up $${amount.toFixed(2)}!`);
                     document.getElementById('topupAmount').value = '';
                     // Refresh wallet balance
                     await loadWalletData();
@@ -477,7 +477,7 @@
                 
             } catch (error) {
                 console.error('Error topping up wallet:', error);
-                showMessage('walletMessage', `❌ Failed to top up wallet: ${error.message}`, true);
+                showMessage('walletMessage', `Failed to top up wallet: ${error.message}`, true);
             }
         }
 
@@ -501,7 +501,7 @@
             // Get user ID
             currentUserId = getUserId();
             if (!currentUserId) {
-                updateStatus('❌ User ID not found. This might be because you registered before the new system was implemented.');
+                updateStatus('User ID not found. This might be because you registered before the new system was implemented.');
                 // Still show stored data
                 document.getElementById('userId').textContent = 'N/A';
                 document.getElementById('userName').textContent = localStorage.getItem('userName') || 'N/A';
@@ -510,7 +510,7 @@
                 return;
             }
 
-            console.log('🔍 Found User ID:', currentUserId);
+            console.log('Found User ID:', currentUserId);
 
             // Load profile and wallet data
             await Promise.all([
