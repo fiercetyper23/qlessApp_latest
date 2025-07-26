@@ -318,10 +318,23 @@
     }
 
     function addToCart(itemId, itemName, price) {
-        cartItems.push({ itemId, itemName, price, quantity: 1 });
+        const newItem = { 
+        item_id: itemId,           // or itemId 
+        itemId: itemId,            // backup format
+        item_name: itemName,       // or itemName
+        itemName: itemName,        // backup format  
+        price: price, 
+        quantity: 1 
+    };
+    
+        cartItems.push(newItem);
+    
+        // Save to localStorage so cart.html can access it
+        localStorage.setItem('tempCart', JSON.stringify(cartItems));
+    
         updateCartIndicator();
         updateStatus(`Added "${itemName}" to cart!`);
-    }
+}
 
     function toggleFavorite(itemId, itemName) {
         updateStatus(`Added "${itemName}" to favorites!`);
@@ -340,7 +353,11 @@
     }
 
     function viewCart() {
-        alert(`Cart has ${cartItems.length} items:\n${cartItems.map(item => `- ${item.itemName} ($${item.price})`).join('\n')}`);
+        // Save cart items to localStorage so cart.html can access them
+        localStorage.setItem('tempCart', JSON.stringify(cartItems));
+    
+        // Navigate to cart page
+        window.location.href = 'cart.html';
     }
 
     // Replace the loadFoodItems function in your food.html with this updated version:
