@@ -195,7 +195,7 @@
 
     <!-- Debug Information -->
     <div class="debug-info" id="debugInfo">
-        🔄 Loading food items from ItemService API...
+        Loading food items from ItemService API...
     </div>
 
     <!-- Header with user info -->
@@ -221,7 +221,7 @@
 
     <!-- Loading indicator -->
     <div id="loadingIndicator" class="loading">
-        🍛 Loading delicious food items...
+        Loading delicious food items...
     </div>
 
     <!-- Food items grid -->
@@ -231,11 +231,11 @@
 
     <!-- Cart indicator -->
     <div class="cart-indicator" id="cartIndicator" onclick="viewCart()" style="display: none;">
-        🛒 Cart (<span id="cartCount">0</span>)
+        Cart (<span id="cartCount">0</span>)
     </div>
 
 <script>
-    const API_BASE_URL = 'https://ilvqzjfhnk.execute-api.ap-southeast-1.amazonaws.com/Default';
+    const API_BASE_URL = 'https://q29jdqrzhk.execute-api.ap-southeast-2.amazonaws.com/prod';
     const ENDPOINTS = {
         items: `${API_BASE_URL}/api/items`
     };
@@ -320,11 +320,11 @@
     function addToCart(itemId, itemName, price) {
         cartItems.push({ itemId, itemName, price, quantity: 1 });
         updateCartIndicator();
-        updateStatus(`✅ Added "${itemName}" to cart!`);
+        updateStatus(`Added "${itemName}" to cart!`);
     }
 
     function toggleFavorite(itemId, itemName) {
-        updateStatus(`❤️ Added "${itemName}" to favorites!`);
+        updateStatus(`Added "${itemName}" to favorites!`);
     }
 
     function updateCartIndicator() {
@@ -347,7 +347,7 @@
 
     async function loadFoodItems() {
         try {
-            updateStatus('🔄 Fetching food items from ItemService...');
+            updateStatus('Fetching food items from ItemService...');
             
             // Simplified fetch - no Authorization header needed
             const response = await fetch(ENDPOINTS.items, {
@@ -378,18 +378,18 @@
             if (allFoodItems.length === 0) throw new Error('No food items found');
 
             renderFoodItems(allFoodItems);
-            updateStatus(`✅ Loaded ${allFoodItems.length} food items successfully!`);
+            updateStatus(`Loaded ${allFoodItems.length} food items successfully!`);
             clearError();
             
         } catch (error) {
-            console.error('❌ Error loading food items:', error);
+            console.error('Error loading food items:', error);
             
             if (error.name === 'TypeError' && error.message.includes('fetch')) {
                 showError('Network error: Unable to connect to the API. This might be a CORS issue.');
-                updateStatus('❌ Network/CORS error - check browser console for details');
+                updateStatus('Network/CORS error - check browser console for details');
             } else {
                 showError(`Failed to load food items: ${error.message}`);
-                updateStatus(`❌ Failed to load food items: ${error.message}`);
+                updateStatus(`Failed to load food items: ${error.message}`);
             }
         } finally {
             document.getElementById('loadingIndicator').style.display = 'none';
@@ -398,7 +398,7 @@
 
     // Run on page load
     window.addEventListener('load', () => {
-        console.log('🍛 Food Listings Page Loaded');
+        console.log('Food Listings Page Loaded');
 
         const accessToken = localStorage.getItem('accessToken');
         const userEmail = localStorage.getItem('userEmail');
