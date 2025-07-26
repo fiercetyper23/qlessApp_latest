@@ -249,7 +249,7 @@
 
     function showError(message) {
         const container = document.getElementById('errorContainer');
-        container.innerHTML = `<div class="error-message">❌ ${message}</div>`;
+        container.innerHTML = `<div class="error-message">${message}</div>`;
     }
 
     function clearError() {
@@ -297,8 +297,8 @@
                     <div class="food-price">$${parseFloat(item.price || 0).toFixed(2)}</div>
                     <div class="vendor-info">Vendor: ${item.vendor_id || 'Unknown'}</div>
                     <div class="food-actions">
-                        <button class="btn btn-secondary" onclick="toggleFavorite('${item.item_id}', '${item.item_name}')">❤️ Favorite</button>
-                        <button class="btn btn-primary" onclick="addToCart('${item.item_id}', '${item.item_name}', ${item.price})">🛒 Add to Cart</button>
+                        <button class="btn btn-secondary" onclick="toggleFavorite('${item.item_id}', '${item.item_name}')">Favorite</button>
+                        <button class="btn btn-primary" onclick="addToCart('${item.item_id}', '${item.item_name}', ${item.price})">Add to Cart</button>
                     </div>
                 </div>
             </div>

@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QLess - My Cart</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .text-center {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .text-center h1 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .text-center p {
+            color: #7f8c8d;
+        }
+        .header-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-info {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .nav-links a {
+            margin: 0 10px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        .logout-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 15px;
+        }
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+        .cart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        .cart-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .clear-cart-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .clear-cart-btn:hover {
+            background-color: #c0392b;
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #ecf0f1;
+            transition: background-color 0.2s ease;
+        }
+        .cart-item:hover {
+            background-color: #f8f9fa;
+        }
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        .item-image {
+            width: 80px;
+            height: 80px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 24px;
+        }
+        .item-details {
+            flex: 1;
+            margin-right: 20px;
+        }
+        .item-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .item-price {
+            font-size: 16px;
+            color: #27ae60;
+            font-weight: 600;
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            margin: 0 20px;
+        }
+        .qty-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .qty-btn:hover {
+            background-color: #2980b9;
+        }
+        .qty-btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .quantity-display {
+            margin: 0 15px;
+            font-size: 18px;
+            font-weight: 600;
+            min-width: 30px;
+            text-align: center;
+        }
+        .item-total {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            min-width: 80px;
+            text-align: right;
+            margin-right: 20px;
+        }
+        .remove-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .remove-btn:hover {
+            background-color: #c0392b;
+        }
+        .cart-summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            padding-top: 15px;
+            border-top: 2px solid #ecf0f1;
+        }
+        .checkout-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+            margin: 0 10px;
+        }
+        .btn-primary {
+            background-color: #27ae60;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #229954;
+        }
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        .empty-cart {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+        .empty-cart-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        .empty-cart h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+        .error-message, .success-message {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="text-center">
+        <h1>My Cart</h1>
+        <p>Review your selected items</p>
+    </div>
+
+    <!-- Debug Information -->
+    <div class="debug-info" id="debugInfo">
+        Loading cart items...
+    </div>
+
+    <!-- Header with user info -->
+    <div class="header-bar">
+        <div class="user-info">
+            <span id="userWelcome">Welcome! Review your cart items</span>
+        </div>
+        
+        <div style="display: flex; align-items: center;">
+            <div class="nav-links">
+                <a href="food.html">Food Menu</a>
+                <a href="profile.html">Profile</a>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Message container -->
+    <div id="messageContainer"></div>
+
+    <!-- Loading indicator -->
+    <div id="loadingIndicator" class="loading">
+        🛒 Loading your cart...
+    </div>
+
+    <!-- Cart Container -->
+    <div class="cart-container" id="cartContainer" style="display: none;">
+        <div class="cart-header">
+            <div class="cart-title">🛒 My Cart</div>
+            <button class="clear-cart-btn" onclick="clearCart()" id="clearCartBtn">Clear Cart</button>
+        </div>
+
+        <!-- Cart Items -->
+        <div id="cartItems">
+            <!-- Cart items will be inserted here -->
+        </div>
+
+        <!-- Cart Summary -->
+        <div class="cart-summary" id="cartSummary">
+            <div class="summary-row">
+                <span>Subtotal:</span>
+                <span id="subtotal">$0.00</span>
+            </div>
+            <div class="summary-row">
+                <span>Tax (8%):</span>
+                <span id="tax">$0.00</span>
+            </div>
+            <div class="summary-total">
+                <span>Total:</span>
+                <span id="total">$0.00</span>
+            </div>
+        </div>
+
+        <!-- Checkout Section -->
+        <div class="checkout-section">
+            <button class="btn btn-primary" onclick="proceedToCheckout()" id="checkoutBtn">
+                Proceed to Checkout
+            </button>
+            <button class="btn btn-secondary" onclick="continueShopping()">
+                ← Continue Shopping
+            </button>
+        </div>
+    </div>
+
+    <!-- Empty Cart -->
+    <div class="cart-container" id="emptyCart" style="display: none;">
+        <div class="empty-cart">
+            <div class="empty-cart-icon">🛒</div>
+            <h3>Your cart is empty</h3>
+            <p>Add some delicious items from our food menu!</p>
+            <button class="btn btn-primary" onclick="continueShopping()" style="margin-top: 20px;">
+                Browse Food Menu
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration (will be updated with actual REST API URLs)
+        const USER_API_BASE = 'https://l9zzc8jfjd.execute-api.ap-southeast-2.amazonaws.com/prod';
+        const CART_API_BASE = 'https://CART-REST-API-ID.execute-api.ap-southeast-2.amazonaws.com/prod'; // To be updated
+
+        const ENDPOINTS = {
+            getCart: `${CART_API_BASE}/api/cart`,           // GET /api/cart/{user_id}
+            addToCart: `${CART_API_BASE}/api/cart`,         // POST /api/cart
+            updateCart: `${CART_API_BASE}/api/cart`,        // PUT /api/cart/{user_id}/{item_id}
+            removeFromCart: `${CART_API_BASE}/api/cart`,    // DELETE /api/cart/{user_id}/{item_id}
+        };
+
+        let currentUserId = null;
+        let cartItems = [];
+
+        function updateStatus(message) {
+            document.getElementById('debugInfo').textContent = message;
+        }
+
+        function showMessage(message, isError = false) {
+            const container = document.getElementById('messageContainer');
+            container.innerHTML = `<div class="${isError ? 'error-message' : 'success-message'}">${message}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        function isTokenValid(token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const currentTime = Math.floor(Date.now() / 1000);
+                return payload.exp > currentTime;
+            } catch (err) {
+                return false;
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('userEmail');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('userId');
+                window.location.href = 'index.html';
+            }
+        }
+
+        function getUserId() {
+            let userId = localStorage.getItem('userId');
+            if (userId) return userId;
+
+            const idToken = localStorage.getItem('idToken');
+            if (idToken) {
+                try {
+                    const base64Url = idToken.split('.')[1];
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
+                        '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                    const tokenData = JSON.parse(jsonPayload);
+                    userId = tokenData['custom:user_id'];
+                    if (userId) {
+                        localStorage.setItem('userId', userId);
+                        return userId;
+                    }
+                } catch (error) {
+                    console.error('Error parsing token:', error);
+                }
+            }
+            return null;
+        }
+
+        async function loadCart() {
+            try {
+                updateStatus('Loading cart items...');
+                
+                // TODO: Replace with actual API call when CartService is ready
+                // const response = await fetch(`${ENDPOINTS.getCart}/${currentUserId}`, {
+                //     method: 'GET',
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                //     }
+                // });
+                
+                // For now, simulate loading from localStorage (temporary)
+                const savedCart = localStorage.getItem('tempCart');
+                cartItems = savedCart ? JSON.parse(savedCart) : [];
+                
+                displayCart();
+                updateStatus('Cart loaded successfully');
+                
+            } catch (error) {
+                console.error('Error loading cart:', error);
+                showMessage(`Failed to load cart: ${error.message}`, true);
+                updateStatus('Failed to load cart');
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }
+        }
+
+        function displayCart() {
+            const cartContainer = document.getElementById('cartContainer');
+            const emptyCart = document.getElementById('emptyCart');
+            const cartItemsDiv = document.getElementById('cartItems');
+
+            if (cartItems.length === 0) {
+                cartContainer.style.display = 'none';
+                emptyCart.style.display = 'block';
+                return;
+            }
+
+            cartContainer.style.display = 'block';
+            emptyCart.style.display = 'none';
+
+            const itemsHTML = cartItems.map((item, index) => `
+                <div class="cart-item" data-item-id="${item.item_id || item.itemId}">
+                    <div class="item-image">🍽️</div>
+                    <div class="item-details">
+                        <div class="item-name">${item.item_name || item.itemName || 'Unknown Item'}</div>
+                        <div class="item-price">$${parseFloat(item.price || 0).toFixed(2)} each</div>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="qty-btn" onclick="updateQuantity('${item.item_id || item.itemId}', ${(item.quantity || 1) - 1})" 
+                                ${(item.quantity || 1) <= 1 ? 'disabled' : ''}>−</button>
+                        <div class="quantity-display">${item.quantity || 1}</div>
+                        <button class="qty-btn" onclick="updateQuantity('${item.item_id || item.itemId}', ${(item.quantity || 1) + 1})">+</button>
+                    </div>
+                    <div class="item-total">$${(parseFloat(item.price || 0) * (item.quantity || 1)).toFixed(2)}</div>
+                    <button class="remove-btn" onclick="removeFromCart('${item.item_id || item.itemId}')">🗑️</button>
+                </div>
+            `).join('');
+
+            cartItemsDiv.innerHTML = itemsHTML;
+            updateCartSummary();
+        }
+
+        function updateCartSummary() {
+            const subtotal = cartItems.reduce((sum, item) => 
+                sum + (parseFloat(item.price || 0) * (item.quantity || 1)), 0);
+            const tax = subtotal * 0.08; // 8% tax
+            const total = subtotal + tax;
+
+            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('tax').textContent = `$${tax.toFixed(2)}`;
+            document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+        }
+
+        async function updateQuantity(itemId, newQuantity) {
+            if (newQuantity < 1) return;
+
+            try {
+                updateStatus('Updating quantity...');
+
+                // TODO: Replace with actual API call when CartService is ready
+                // const response = await fetch(`${ENDPOINTS.updateCart}/${currentUserId}/${itemId}`, {
+                //     method: 'PUT',
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                //     },
+                //     body: JSON.stringify({ quantity: newQuantity })
+                // });
+
+                // For now, update locally (temporary)
+                const itemIndex = cartItems.findIndex(item => 
+                    (item.item_id || item.itemId) === itemId);
+                if (itemIndex !== -1) {
+                    cartItems[itemIndex].quantity = newQuantity;
+                    localStorage.setItem('tempCart', JSON.stringify(cartItems));
+                    displayCart();
+                    showMessage('Quantity updated successfully!');
+                }
+
+                updateStatus('Quantity updated successfully');
+
+            } catch (error) {
+                console.error('Error updating quantity:', error);
+                showMessage(`Failed to update quantity: ${error.message}`, true);
+                updateStatus('Failed to update quantity');
+            }
+        }
+
+        async function removeFromCart(itemId) {
+            if (!confirm('Remove this item from your cart?')) return;
+
+            try {
+                updateStatus('Removing item...');
+
+                // TODO: Replace with actual API call when CartService is ready
+                // const response = await fetch(`${ENDPOINTS.removeFromCart}/${currentUserId}/${itemId}`, {
+                //     method: 'DELETE',
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                //     }
+                // });
+
+                // For now, remove locally (temporary)
+                cartItems = cartItems.filter(item => 
+                    (item.item_id || item.itemId) !== itemId);
+                localStorage.setItem('tempCart', JSON.stringify(cartItems));
+                displayCart();
+                showMessage('Item removed from cart!');
+
+                updateStatus('Item removed successfully');
+
+            } catch (error) {
+                console.error('Error removing item:', error);
+                showMessage(`Failed to remove item: ${error.message}`, true);
+                updateStatus('Failed to remove item');
+            }
+        }
+
+        async function clearCart() {
+            if (!confirm('Are you sure you want to clear your entire cart?')) return;
+
+            try {
+                updateStatus('Clearing cart...');
+
+                // TODO: Replace with actual API call when CartService is ready
+                // Multiple DELETE calls or a special clear endpoint
+
+                // For now, clear locally (temporary)
+                cartItems = [];
+                localStorage.setItem('tempCart', JSON.stringify(cartItems));
+                displayCart();
+                showMessage('Cart cleared successfully!');
+
+                updateStatus('Cart cleared successfully');
+
+            } catch (error) {
+                console.error('Error clearing cart:', error);
+                showMessage(`Failed to clear cart: ${error.message}`, true);
+                updateStatus('Failed to clear cart');
+            }
+        }
+
+        function proceedToCheckout() {
+            const total = cartItems.reduce((sum, item) => 
+                sum + (parseFloat(item.price || 0) * (item.quantity || 1)), 0);
+            const totalWithTax = total * 1.08;
+
+            // TODO: Implement actual checkout process
+            // This could involve:
+            // 1. Wallet deduction
+            // 2. Transaction creation
+            // 3. Order confirmation
+
+            alert(`Checkout functionality coming soon!\n\nTotal: $${totalWithTax.toFixed(2)}\n\nThis will integrate with your wallet and transaction services.`);
+        }
+
+        function continueShopping() {
+            window.location.href = 'food.html';
+        }
+
+        // Initialize page
+        window.addEventListener('load', async () => {
+            console.log('Cart Page Loaded');
+
+            // Check authentication
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken || !isTokenValid(accessToken)) {
+                alert('Session expired. Please log in again.');
+                localStorage.clear();
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Get user ID
+            currentUserId = getUserId();
+            if (!currentUserId) {
+                updateStatus('User ID not found');
+                showMessage('User ID not found. Some features may not work properly.', true);
+            }
+
+            // Update welcome message
+            const userName = localStorage.getItem('userName');
+            const userEmail = localStorage.getItem('userEmail');
+            document.getElementById('userWelcome').textContent = 
+                `Welcome, ${userName || userEmail}! Review your cart items`;
+
+            // Load cart
+            await loadCart();
+        });
+    </script>
+</body>
+</html>
