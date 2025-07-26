@@ -1,104 +1,165 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>QLess - Login</title>
+    <title>QLess - Food Menu</title>
     <style>
-        /* [Styles remain unchanged...] */
         body {
             font-family: Arial, sans-serif;
-            max-width: 400px;
+            max-width: 800px;
             margin: 50px auto;
             padding: 20px;
             background-color: #f5f5f5;
         }
-        .text-center { text-align: center; margin-bottom: 30px; }
-        .text-center h1 { color: #2c3e50; margin-bottom: 5px; }
-        .text-center p { color: #7f8c8d; }
-        .tab-buttons {
-            display: flex;
-            background-color: #ecf0f1;
-            border-radius: 8px 8px 0 0;
-            overflow: hidden;
+        .text-center { 
+            text-align: center; 
+            margin-bottom: 30px; 
         }
-        .tab-button {
-            flex: 1;
-            padding: 12px 16px;
+        .text-center h1 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .text-center p {
+            color: #7f8c8d;
+        }
+        .header-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-info {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .logout-btn {
+            background-color: #e74c3c;
+            color: white;
             border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 500;
-            color: #7f8c8d;
-            background: none;
-            transition: all 0.3s ease;
         }
-        .tab-button.active {
-            background-color: #3498db;
-            color: white;
+        .logout-btn:hover {
+            background-color: #c0392b;
         }
-        .tab-button:hover {
-            background-color: #34495e;
-            color: white;
-        }
-        .tab-content {
+        .search-bar {
             background: white;
-            padding: 24px;
-            border-radius: 0 0 8px 8px;
+            padding: 20px;
+            border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
-        .form-group {
-            margin-bottom: 16px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 500;
-            color: #2c3e50;
-        }
-        .form-group input {
+        .search-bar input {
             width: 100%;
             padding: 12px;
             border: 1px solid #bdc3c7;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: 16px;
             box-sizing: border-box;
         }
-        .form-group input:focus {
+        .search-bar input:focus {
             outline: none;
             border-color: #3498db;
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
-        button[type="submit"] {
+        .food-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .food-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+        .food-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .food-image {
             width: 100%;
-            padding: 12px;
-            background-color: #3498db;
-            color: white;
+            height: 200px;
+            background-color: #ecf0f1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #95a5a6;
+            font-size: 18px;
+        }
+        .food-info {
+            padding: 20px;
+        }
+        .food-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        .food-description {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .food-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 12px;
+        }
+        .vendor-info {
+            font-size: 12px;
+            color: #95a5a6;
+            margin-bottom: 15px;
+        }
+        .food-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 16px;
             border: none;
             border-radius: 4px;
-            font-size: 16px;
-            font-weight: 500;
             cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
             transition: background-color 0.3s ease;
+            flex: 1;
         }
-        button[type="submit"]:hover {
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        .btn-primary:hover {
             background-color: #2980b9;
         }
-        .error-message, .success-message {
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 16px;
-            font-size: 14px;
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-size: 16px;
         }
         .error-message {
             background-color: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
-        }
-        .success-message {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
         }
         .debug-info {
             background: #f8f9fa;
@@ -109,9 +170,20 @@
             font-size: 12px;
             color: #6c757d;
         }
-        .loading {
-            opacity: 0.6;
-            pointer-events: none;
+        .cart-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #e67e22;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 50px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .cart-indicator:hover {
+            background-color: #d35400;
         }
     </style>
 </head>
@@ -121,198 +193,247 @@
         <p>The Sustainable Way to Makan</p>
     </div>
 
+    <!-- Debug Information -->
     <div class="debug-info" id="debugInfo">
-        ✅ CDN-Free Authentication Ready - No external dependencies
+        Loading food items from ItemService API...
     </div>
 
-    <div class="tab-buttons">
-        <button class="tab-button active" onclick="showTab('login')">Login</button>
-        <button class="tab-button" onclick="showTab('register')">Register</button>
+    <!-- Header with user info -->
+    <div class="header-bar">
+    <div class="user-info">
+        <span id="userWelcome">Welcome! Browse our delicious food items</span>
+    </div>
+    
+    <div>
+        <a href="profile.html" style="margin-right: 15px; color: #3498db; text-decoration: none; font-weight: bold;">Profile</a>
+        <button class="logout-btn" onclick="handleLogout()">Logout</button>
+    </div>
+</div>
+
+    <!-- Search bar -->
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search for food items..." 
+               onkeyup="filterItems()" />
     </div>
 
-    <div class="tab-content">
-        <div id="login" class="tab-panel active">
-            <div id="loginMessage"></div>
-            <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label for="loginEmail">Email:</label>
-                    <input type="email" id="loginEmail" required>
-                </div>
-                <div class="form-group">
-                    <label for="loginPassword">Password:</label>
-                    <input type="password" id="loginPassword" required>
-                </div>
-                <button type="submit">Login</button>
-            </form>
-        </div>
+    <!-- Error message container -->
+    <div id="errorContainer"></div>
 
-        <div id="register" class="tab-panel">
-            <div id="registerMessage"></div>
-            <form id="registerForm" onsubmit="handleRegister(event)">
-                <div class="form-group">
-                    <label for="registerName">Full Name:</label>
-                    <input type="text" id="registerName" required>
-                </div>
-                <div class="form-group">
-                    <label for="registerEmail">Email:</label>
-                    <input type="email" id="registerEmail" required>
-                </div>
-                <div class="form-group">
-                    <label for="registerPassword">Password:</label>
-                    <input type="password" id="registerPassword" required minlength="8">
-                </div>
-                <button type="submit">Register</button>
-            </form>
-        </div>
+    <!-- Loading indicator -->
+    <div id="loadingIndicator" class="loading">
+        Loading delicious food items...
     </div>
 
-    <script>
-        const REGION = 'ap-southeast-1';
-        const USER_POOL_ID = 'ap-southeast-1_9KWvZemLu';
-        const CLIENT_ID = '34j8mbadeh1guqhe5lktl1upko';
+    <!-- Food items grid -->
+    <div id="foodGrid" class="food-grid" style="display: none;">
+        <!-- Food items will be inserted here by JavaScript -->
+    </div>
 
-        function updateStatus(message) {
-            document.getElementById('debugInfo').textContent = message;
+    <!-- Cart indicator -->
+    <div class="cart-indicator" id="cartIndicator" onclick="viewCart()" style="display: none;">
+        Cart (<span id="cartCount">0</span>)
+    </div>
+
+<script>
+    const API_BASE_URL = 'https://q29jdqrzhk.execute-api.ap-southeast-2.amazonaws.com/prod';
+    const ENDPOINTS = {
+        items: `${API_BASE_URL}/api/items`
+    };
+
+    let allFoodItems = [];
+    let cartItems = [];
+
+    function updateStatus(message) {
+        document.getElementById('debugInfo').textContent = message;
+    }
+
+    function showError(message) {
+        const container = document.getElementById('errorContainer');
+        container.innerHTML = `<div class="error-message">${message}</div>`;
+    }
+
+    function clearError() {
+        document.getElementById('errorContainer').innerHTML = '';
+    }
+
+    function isTokenValid(token) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const currentTime = Math.floor(Date.now() / 1000);
+            return payload.exp > currentTime;
+        } catch (err) {
+            return false;
+        }
+    }
+
+    function handleLogout() {
+        if (confirm('Are you sure you want to logout?')) {
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('accessToken');
+            window.location.href = 'index.html';
+        }
+    }
+
+    function renderFoodItems(items) {
+        const grid = document.getElementById('foodGrid');
+        if (items.length === 0) {
+            grid.innerHTML = '<div class="loading">No food items found</div>';
+            grid.style.display = 'block';
+            return;
         }
 
-        function showTab(tabId) {
-            document.querySelectorAll(".tab-panel").forEach(t => t.classList.remove("active"));
-            document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
-            document.getElementById(tabId).classList.add("active");
-            document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`).classList.add("active");
-        }
+        const itemsHTML = items.map(item => `
+            <div class="food-card" data-item-id="${item.item_id}">
+                <div class="food-image">
+                    ${item.image_url ? 
+                        `<img src="${item.image_url}" alt="${item.item_name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">` : 
+                        '🍽️ ' + item.item_name
+                    }
+                </div>
+                <div class="food-info">
+                    <div class="food-name">${item.item_name || 'Unknown Item'}</div>
+                    <div class="food-description">${item.description || 'No description available'}</div>
+                    <div class="food-price">$${parseFloat(item.price || 0).toFixed(2)}</div>
+                    <div class="vendor-info">Vendor: ${item.vendor_id || 'Unknown'}</div>
+                    <div class="food-actions">
+                        <button class="btn btn-secondary" onclick="toggleFavorite('${item.item_id}', '${item.item_name}')">Favorite</button>
+                        <button class="btn btn-primary" onclick="addToCart('${item.item_id}', '${item.item_name}', ${item.price})">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
 
-        function showMessage(id, message, isError = false) {
-            const element = document.getElementById(id);
-            element.innerHTML = `<div class="${isError ? 'error-message' : 'success-message'}">${message}</div>`;
-            setTimeout(() => {
-                element.innerHTML = '';
-            }, 8000);
-        }
+        grid.innerHTML = itemsHTML;
+        grid.style.display = 'grid';
+    }
 
-        function setLoading(formId, isLoading) {
-            const form = document.getElementById(formId);
-            if (isLoading) {
-                form.classList.add('loading');
+    function filterItems() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const filteredItems = allFoodItems.filter(item => 
+            (item.item_name || '').toLowerCase().includes(searchTerm) ||
+            (item.description || '').toLowerCase().includes(searchTerm)
+        );
+        renderFoodItems(filteredItems);
+    }
+
+    function addToCart(itemId, itemName, price) {
+        const newItem = { 
+        item_id: itemId,           // or itemId 
+        itemId: itemId,            // backup format
+        item_name: itemName,       // or itemName
+        itemName: itemName,        // backup format  
+        price: price, 
+        quantity: 1 
+    };
+    
+        cartItems.push(newItem);
+    
+        // Save to localStorage so cart.html can access it
+        localStorage.setItem('tempCart', JSON.stringify(cartItems));
+    
+        updateCartIndicator();
+        updateStatus(`Added "${itemName}" to cart!`);
+}
+
+    function toggleFavorite(itemId, itemName) {
+        updateStatus(`Added "${itemName}" to favorites!`);
+    }
+
+    function updateCartIndicator() {
+        const indicator = document.getElementById('cartIndicator');
+        const count = document.getElementById('cartCount');
+
+        if (cartItems.length > 0) {
+            count.textContent = cartItems.length;
+            indicator.style.display = 'block';
+        } else {
+            indicator.style.display = 'none';
+        }
+    }
+
+    function viewCart() {
+        // Save cart items to localStorage so cart.html can access them
+        localStorage.setItem('tempCart', JSON.stringify(cartItems));
+    
+        // Navigate to cart page
+        window.location.href = 'cart.html';
+    }
+
+    // Replace the loadFoodItems function in your food.html with this updated version:
+
+    async function loadFoodItems() {
+        try {
+            updateStatus('Fetching food items from ItemService...');
+            
+            // Simplified fetch - no Authorization header needed
+            const response = await fetch(ENDPOINTS.items, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                mode: 'cors'
+            });
+            
+            console.log('Response status:', response.status);
+            console.log('Response headers:', [...response.headers.entries()]);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('API Error Response:', errorText);
+                throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+            }
+
+            const data = await response.json();
+            console.log('Raw API response:', data);
+            
+            let items = data;
+            if (typeof data === 'string') items = JSON.parse(data);
+            if (data.body) items = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+
+            allFoodItems = Array.isArray(items) ? items : [items];
+            if (allFoodItems.length === 0) throw new Error('No food items found');
+
+            renderFoodItems(allFoodItems);
+            updateStatus(`Loaded ${allFoodItems.length} food items successfully!`);
+            clearError();
+            
+        } catch (error) {
+            console.error('Error loading food items:', error);
+            
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                showError('Network error: Unable to connect to the API. This might be a CORS issue.');
+                updateStatus('Network/CORS error - check browser console for details');
             } else {
-                form.classList.remove('loading');
+                showError(`Failed to load food items: ${error.message}`);
+                updateStatus(`Failed to load food items: ${error.message}`);
             }
+        } finally {
+            document.getElementById('loadingIndicator').style.display = 'none';
+        }
+    }
+
+    // Run on page load
+    window.addEventListener('load', () => {
+        console.log('Food Listings Page Loaded');
+
+        const accessToken = localStorage.getItem('accessToken');
+        const userEmail = localStorage.getItem('userEmail');
+        const userName = localStorage.getItem('userName');
+
+        if (!accessToken || !isTokenValid(accessToken)) {
+            alert('Session expired or invalid. Please log in again.');
+            localStorage.clear();
+            window.location.href = 'index.html';
+            return;
         }
 
-        async function callCognitoAPI(action, body) {
-            const url = `https://cognito-idp.${REGION}.amazonaws.com/`;
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-amz-json-1.1',
-                        'X-Amz-Target': `AWSCognitoIdentityProviderService.${action}`
-                    },
-                    body: JSON.stringify(body)
-                });
+        document.getElementById('userWelcome').textContent = 
+            `Welcome, ${userName || userEmail}! Browse our delicious food items`;
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    let errorData;
-                    try {
-                        errorData = JSON.parse(errorText);
-                    } catch {
-                        throw new Error(`HTTP ${response.status}: ${errorText}`);
-                    }
-                    throw new Error(errorData.message || errorData.__type || 'Request failed');
-                }
+        loadFoodItems();
+    });
+</script>
 
-                return await response.json();
-            } catch (error) {
-                console.error(`Cognito API Error (${action}):`, error);
-                throw error;
-            }
-        }
-
-        function parseJWT(token) {
-            try {
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
-                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-                return JSON.parse(jsonPayload);
-            } catch (error) {
-                return {};
-            }
-        }
-
-        async function handleRegister(event) {
-            event.preventDefault();
-            setLoading('registerForm', true);
-            const fullName = document.getElementById('registerName').value;
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
-
-            try {
-                const result = await callCognitoAPI('SignUp', {
-                    ClientId: CLIENT_ID,
-                    Username: email,
-                    Password: password,
-                    UserAttributes: [
-                        { Name: 'email', Value: email },
-                        { Name: 'name', Value: fullName }
-                    ]
-                });
-                showMessage('registerMessage', '✅ Registration successful! Please verify your email.');
-            } catch (error) {
-                showMessage('registerMessage', `❌ Registration failed: ${error.message}`, true);
-            } finally {
-                setLoading('registerForm', false);
-            }
-        }
-
-        async function handleLogin(event) {
-            event.preventDefault();
-            setLoading('loginForm', true);
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-
-            try {
-                const result = await callCognitoAPI('InitiateAuth', {
-                    AuthFlow: 'USER_PASSWORD_AUTH',
-                    ClientId: CLIENT_ID,
-                    AuthParameters: {
-                        USERNAME: email,
-                        PASSWORD: password
-                    }
-                });
-
-                if (result.AuthenticationResult?.AccessToken) {
-                    const accessToken = result.AuthenticationResult.AccessToken;
-                    const idToken = result.AuthenticationResult.IdToken;
-                    const name = parseJWT(idToken).name || email;
-                    localStorage.setItem('userEmail', email);
-                    localStorage.setItem('accessToken', accessToken);
-                    localStorage.setItem('userName', name);
-
-                    showMessage('loginMessage', '✅ Login successful! Redirecting...');
-                    updateStatus(`✅ Logged in as: ${email}`);
-
-                    // ✅ SIMPLIFIED & FIXED REDIRECT
-                    setTimeout(() => {
-                        const foodUrl = `${window.location.origin}/food`;
-                        console.log('✅ Redirecting to:', foodUrl);
-                        window.location.href = foodUrl;
-                    }, 3000);
-                } else {
-                    throw new Error('Login succeeded but no token received');
-                }
-            } catch (error) {
-                showMessage('loginMessage', `❌ Login failed: ${error.message}`, true);
-            } finally {
-                setLoading('loginForm', false);
-            }
-        }
-
-        window.addEventListener('load', () => {
-            updateStatus('✅ CDN-free authentication ready!');
-        });
-    </script>
 </body>
 </html>
-

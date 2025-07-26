@@ -193,247 +193,337 @@
         <p>The Sustainable Way to Makan</p>
     </div>
 
-    <!-- Debug Information -->
     <div class="debug-info" id="debugInfo">
         Loading food items from ItemService API...
     </div>
 
-    <!-- Header with user info -->
     <div class="header-bar">
-    <div class="user-info">
-        <span id="userWelcome">Welcome! Browse our delicious food items</span>
+        <div class="user-info">
+            <span id="userWelcome">Welcome! Browse our delicious food items</span>
+        </div>
+        
+        <div>
+            <a href="profile.html" style="margin-right: 15px; color: #3498db; text-decoration: none; font-weight: bold;">Profile</a>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
     </div>
-    
-    <div>
-        <a href="profile.html" style="margin-right: 15px; color: #3498db; text-decoration: none; font-weight: bold;">Profile</a>
-        <button class="logout-btn" onclick="handleLogout()">Logout</button>
-    </div>
-</div>
 
-    <!-- Search bar -->
     <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search for food items..." 
-               onkeyup="filterItems()" />
+        <input type="text" id="searchInput" placeholder="Search for food items..." onkeyup="filterItems()" />
     </div>
 
-    <!-- Error message container -->
     <div id="errorContainer"></div>
 
-    <!-- Loading indicator -->
     <div id="loadingIndicator" class="loading">
         Loading delicious food items...
     </div>
 
-    <!-- Food items grid -->
     <div id="foodGrid" class="food-grid" style="display: none;">
-        <!-- Food items will be inserted here by JavaScript -->
     </div>
 
-    <!-- Cart indicator -->
     <div class="cart-indicator" id="cartIndicator" onclick="viewCart()" style="display: none;">
         Cart (<span id="cartCount">0</span>)
     </div>
 
-<script>
-    const API_BASE_URL = 'https://q29jdqrzhk.execute-api.ap-southeast-2.amazonaws.com/prod';
-    const ENDPOINTS = {
-        items: `${API_BASE_URL}/api/items`
-    };
+    <script>
+        const ITEMS_API_BASE_URL = 'https://q29jdqrzhk.execute-api.ap-southeast-2.amazonaws.com/prod';
+        const CART_API_BASE_URL = 'https://x1otrcbnaj.execute-api.ap-southeast-2.amazonaws.com/prod';
+        
+        const ENDPOINTS = {
+            items: ITEMS_API_BASE_URL + '/api/items',
+            cart: CART_API_BASE_URL + '/api/cart'
+        };
 
-    let allFoodItems = [];
-    let cartItems = [];
+        let allFoodItems = [];
 
-    function updateStatus(message) {
-        document.getElementById('debugInfo').textContent = message;
-    }
-
-    function showError(message) {
-        const container = document.getElementById('errorContainer');
-        container.innerHTML = `<div class="error-message">${message}</div>`;
-    }
-
-    function clearError() {
-        document.getElementById('errorContainer').innerHTML = '';
-    }
-
-    function isTokenValid(token) {
-        try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            const currentTime = Math.floor(Date.now() / 1000);
-            return payload.exp > currentTime;
-        } catch (err) {
-            return false;
-        }
-    }
-
-    function handleLogout() {
-        if (confirm('Are you sure you want to logout?')) {
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('userName');
-            localStorage.removeItem('accessToken');
-            window.location.href = 'index.html';
-        }
-    }
-
-    function renderFoodItems(items) {
-        const grid = document.getElementById('foodGrid');
-        if (items.length === 0) {
-            grid.innerHTML = '<div class="loading">No food items found</div>';
-            grid.style.display = 'block';
-            return;
+        function updateStatus(message) {
+            document.getElementById('debugInfo').textContent = message;
         }
 
-        const itemsHTML = items.map(item => `
-            <div class="food-card" data-item-id="${item.item_id}">
-                <div class="food-image">
-                    ${item.image_url ? 
-                        `<img src="${item.image_url}" alt="${item.item_name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">` : 
-                        '🍽️ ' + item.item_name
+        function showError(message) {
+            const container = document.getElementById('errorContainer');
+            container.innerHTML = '<div class="error-message">' + message + '</div>';
+        }
+
+        function clearError() {
+            document.getElementById('errorContainer').innerHTML = '';
+        }
+
+        function isTokenValid(token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const currentTime = Math.floor(Date.now() / 1000);
+                return payload.exp > currentTime;
+            } catch (err) {
+                return false;
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('userEmail');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('tempCart');
+                window.location.href = 'index.html';
+            }
+        }
+
+        function getUserId() {
+            let userId = localStorage.getItem('userId');
+            if (userId) return userId;
+
+            const idToken = localStorage.getItem('idToken');
+            if (idToken) {
+                try {
+                    const base64Url = idToken.split('.')[1];
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join(''));
+                    const tokenData = JSON.parse(jsonPayload);
+                    userId = tokenData['custom:user_id'];
+                    if (userId) {
+                        localStorage.setItem('userId', userId);
+                        return userId;
                     }
-                </div>
-                <div class="food-info">
-                    <div class="food-name">${item.item_name || 'Unknown Item'}</div>
-                    <div class="food-description">${item.description || 'No description available'}</div>
-                    <div class="food-price">$${parseFloat(item.price || 0).toFixed(2)}</div>
-                    <div class="vendor-info">Vendor: ${item.vendor_id || 'Unknown'}</div>
-                    <div class="food-actions">
-                        <button class="btn btn-secondary" onclick="toggleFavorite('${item.item_id}', '${item.item_name}')">Favorite</button>
-                        <button class="btn btn-primary" onclick="addToCart('${item.item_id}', '${item.item_name}', ${item.price})">Add to Cart</button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-
-        grid.innerHTML = itemsHTML;
-        grid.style.display = 'grid';
-    }
-
-    function filterItems() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const filteredItems = allFoodItems.filter(item => 
-            (item.item_name || '').toLowerCase().includes(searchTerm) ||
-            (item.description || '').toLowerCase().includes(searchTerm)
-        );
-        renderFoodItems(filteredItems);
-    }
-
-    function addToCart(itemId, itemName, price) {
-        const newItem = { 
-        item_id: itemId,           // or itemId 
-        itemId: itemId,            // backup format
-        item_name: itemName,       // or itemName
-        itemName: itemName,        // backup format  
-        price: price, 
-        quantity: 1 
-    };
-    
-        cartItems.push(newItem);
-    
-        // Save to localStorage so cart.html can access it
-        localStorage.setItem('tempCart', JSON.stringify(cartItems));
-    
-        updateCartIndicator();
-        updateStatus(`Added "${itemName}" to cart!`);
-}
-
-    function toggleFavorite(itemId, itemName) {
-        updateStatus(`Added "${itemName}" to favorites!`);
-    }
-
-    function updateCartIndicator() {
-        const indicator = document.getElementById('cartIndicator');
-        const count = document.getElementById('cartCount');
-
-        if (cartItems.length > 0) {
-            count.textContent = cartItems.length;
-            indicator.style.display = 'block';
-        } else {
-            indicator.style.display = 'none';
+                } catch (error) {
+                    console.error('Error parsing token:', error);
+                }
+            }
+            return null;
         }
-    }
 
-    function viewCart() {
-        // Save cart items to localStorage so cart.html can access them
-        localStorage.setItem('tempCart', JSON.stringify(cartItems));
-    
-        // Navigate to cart page
-        window.location.href = 'cart.html';
-    }
+        function renderFoodItems(items) {
+            const grid = document.getElementById('foodGrid');
+            if (items.length === 0) {
+                grid.innerHTML = '<div class="loading">No food items found</div>';
+                grid.style.display = 'block';
+                return;
+            }
 
-    // Replace the loadFoodItems function in your food.html with this updated version:
+            let itemsHTML = '';
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                const imageHTML = item.image_url ? 
+                    '<img src="' + item.image_url + '" alt="' + item.item_name + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display=\'none\'">' : 
+                    '🍽️ ' + item.item_name;
 
-    async function loadFoodItems() {
-        try {
-            updateStatus('Fetching food items from ItemService...');
-            
-            // Simplified fetch - no Authorization header needed
-            const response = await fetch(ENDPOINTS.items, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                mode: 'cors'
+                itemsHTML += '<div class="food-card" data-item-id="' + item.item_id + '">' +
+                    '<div class="food-image">' + imageHTML + '</div>' +
+                    '<div class="food-info">' +
+                        '<div class="food-name">' + (item.item_name || 'Unknown Item') + '</div>' +
+                        '<div class="food-description">' + (item.description || 'No description available') + '</div>' +
+                        '<div class="food-price">$' + parseFloat(item.price || 0).toFixed(2) + '</div>' +
+                        '<div class="vendor-info">Vendor: ' + (item.vendor_id || 'Unknown') + '</div>' +
+                        '<div class="food-actions">' +
+                            '<button class="btn btn-secondary" onclick="toggleFavorite(\'' + item.item_id + '\', \'' + item.item_name + '\')">Favorite</button>' +
+                            '<button class="btn btn-primary" onclick="addToCart(\'' + item.item_id + '\', \'' + item.item_name + '\', ' + item.price + ')">Add to Cart</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+
+            grid.innerHTML = itemsHTML;
+            grid.style.display = 'grid';
+        }
+
+        function filterItems() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filteredItems = allFoodItems.filter(function(item) {
+                return (item.item_name || '').toLowerCase().includes(searchTerm) ||
+                       (item.description || '').toLowerCase().includes(searchTerm);
             });
-            
-            console.log('Response status:', response.status);
-            console.log('Response headers:', [...response.headers.entries()]);
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('API Error Response:', errorText);
-                throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
-            }
-
-            const data = await response.json();
-            console.log('Raw API response:', data);
-            
-            let items = data;
-            if (typeof data === 'string') items = JSON.parse(data);
-            if (data.body) items = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-
-            allFoodItems = Array.isArray(items) ? items : [items];
-            if (allFoodItems.length === 0) throw new Error('No food items found');
-
-            renderFoodItems(allFoodItems);
-            updateStatus(`Loaded ${allFoodItems.length} food items successfully!`);
-            clearError();
-            
-        } catch (error) {
-            console.error('Error loading food items:', error);
-            
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                showError('Network error: Unable to connect to the API. This might be a CORS issue.');
-                updateStatus('Network/CORS error - check browser console for details');
-            } else {
-                showError(`Failed to load food items: ${error.message}`);
-                updateStatus(`Failed to load food items: ${error.message}`);
-            }
-        } finally {
-            document.getElementById('loadingIndicator').style.display = 'none';
-        }
-    }
-
-    // Run on page load
-    window.addEventListener('load', () => {
-        console.log('Food Listings Page Loaded');
-
-        const accessToken = localStorage.getItem('accessToken');
-        const userEmail = localStorage.getItem('userEmail');
-        const userName = localStorage.getItem('userName');
-
-        if (!accessToken || !isTokenValid(accessToken)) {
-            alert('Session expired or invalid. Please log in again.');
-            localStorage.clear();
-            window.location.href = 'index.html';
-            return;
+            renderFoodItems(filteredItems);
         }
 
-        document.getElementById('userWelcome').textContent = 
-            `Welcome, ${userName || userEmail}! Browse our delicious food items`;
+        async function addToCart(itemId, itemName, price) {
+            try {
+                updateStatus('Adding "' + itemName + '" to cart...');
+                
+                const userId = getUserId();
+                if (!userId) {
+                    showError('User ID not found. Please log in again.');
+                    return;
+                }
 
-        loadFoodItems();
-    });
-</script>
+                const response = await fetch(ENDPOINTS.cart, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        item_id: itemId,
+                        quantity: 1
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                }
+
+                const result = await response.json();
+                
+                await updateCartIndicator();
+                
+                updateStatus('✅ "' + itemName + '" added to cart successfully!');
+                
+                setTimeout(function() {
+                    updateStatus('Loaded ' + allFoodItems.length + ' food items successfully!');
+                }, 3000);
+
+            } catch (error) {
+                console.error('Error adding item to cart:', error);
+                
+                const fallbackItem = { 
+                    item_id: itemId,
+                    item_name: itemName,
+                    price: price, 
+                    quantity: 1 
+                };
+                
+                let cartItems = JSON.parse(localStorage.getItem('tempCart') || '[]');
+                cartItems.push(fallbackItem);
+                localStorage.setItem('tempCart', JSON.stringify(cartItems));
+                
+                updateCartIndicator();
+                updateStatus('⚠️ Added "' + itemName + '" to local cart (API failed)');
+                showError('API Error: ' + error.message + '. Item saved locally.');
+            }
+        }
+
+        function toggleFavorite(itemId, itemName) {
+            updateStatus('Added "' + itemName + '" to favorites!');
+        }
+
+        async function updateCartIndicator() {
+            const indicator = document.getElementById('cartIndicator');
+            const count = document.getElementById('cartCount');
+
+            try {
+                const userId = getUserId();
+                if (!userId) return;
+
+                const response = await fetch(ENDPOINTS.cart + '/' + userId, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const cartItems = await response.json();
+                    const totalItems = Array.isArray(cartItems) ? 
+                        cartItems.reduce(function(sum, item) { return sum + item.quantity; }, 0) : 0;
+
+                    if (totalItems > 0) {
+                        count.textContent = totalItems;
+                        indicator.style.display = 'block';
+                    } else {
+                        indicator.style.display = 'none';
+                    }
+                } else {
+                    const savedCart = localStorage.getItem('tempCart');
+                    const cartItems = savedCart ? JSON.parse(savedCart) : [];
+                    
+                    if (cartItems.length > 0) {
+                        count.textContent = cartItems.length;
+                        indicator.style.display = 'block';
+                    } else {
+                        indicator.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating cart indicator:', error);
+                const savedCart = localStorage.getItem('tempCart');
+                const cartItems = savedCart ? JSON.parse(savedCart) : [];
+                
+                if (cartItems.length > 0) {
+                    count.textContent = cartItems.length;
+                    indicator.style.display = 'block';
+                } else {
+                    indicator.style.display = 'none';
+                }
+            }
+        }
+
+        function viewCart() {
+            window.location.href = 'cart.html';
+        }
+
+        async function loadFoodItems() {
+            try {
+                updateStatus('Fetching food items from ItemService...');
+                
+                const response = await fetch(ENDPOINTS.items, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    mode: 'cors'
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error Response:', errorText);
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText + ' - ' + errorText);
+                }
+
+                const data = await response.json();
+                console.log('Raw API response:', data);
+                
+                let items = data;
+                if (typeof data === 'string') items = JSON.parse(data);
+                if (data.body) items = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+
+                allFoodItems = Array.isArray(items) ? items : [items];
+                if (allFoodItems.length === 0) throw new Error('No food items found');
+
+                renderFoodItems(allFoodItems);
+                updateStatus('Loaded ' + allFoodItems.length + ' food items successfully!');
+                clearError();
+                
+            } catch (error) {
+                console.error('Error loading food items:', error);
+                
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    showError('Network error: Unable to connect to the API. This might be a CORS issue.');
+                    updateStatus('Network/CORS error - check browser console for details');
+                } else {
+                    showError('Failed to load food items: ' + error.message);
+                    updateStatus('Failed to load food items: ' + error.message);
+                }
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }
+        }
+
+        window.addEventListener('load', async function() {
+            console.log('Food Listings Page Loaded');
+
+            const accessToken = localStorage.getItem('accessToken');
+            const userEmail = localStorage.getItem('userEmail');
+            const userName = localStorage.getItem('userName');
+
+            if (!accessToken || !isTokenValid(accessToken)) {
+                alert('Session expired or invalid. Please log in again.');
+                localStorage.clear();
+                window.location.href = 'index.html';
+                return;
+            }
+
+            document.getElementById('userWelcome').textContent = 
+                'Welcome, ' + (userName || userEmail) + '! Browse our delicious food items';
+
+            await loadFoodItems();
+            await updateCartIndicator();
+        });
+    </script>
 
 </body>
 </html>

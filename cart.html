@@ -361,16 +361,9 @@
     </div>
 
     <script>
-        // API Configuration (will be updated with actual REST API URLs)
+        // API Configuration - REAL APIs NOW!
         const USER_API_BASE = 'https://l9zzc8jfjd.execute-api.ap-southeast-2.amazonaws.com/prod';
-        const CART_API_BASE = 'https://CART-REST-API-ID.execute-api.ap-southeast-2.amazonaws.com/prod'; // To be updated
-
-        const ENDPOINTS = {
-            getCart: `${CART_API_BASE}/api/cart`,           // GET /api/cart/{user_id}
-            addToCart: `${CART_API_BASE}/api/cart`,         // POST /api/cart
-            updateCart: `${CART_API_BASE}/api/cart`,        // PUT /api/cart/{user_id}/{item_id}
-            removeFromCart: `${CART_API_BASE}/api/cart`,    // DELETE /api/cart/{user_id}/{item_id}
-        };
+        const CART_API_BASE = 'https://x1otrcbnaj.execute-api.ap-southeast-2.amazonaws.com/prod'; 
 
         let currentUserId = null;
         let cartItems = [];
@@ -403,6 +396,7 @@
                 localStorage.removeItem('userName');
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('userId');
+                localStorage.removeItem('tempCart'); // Clean up temp cart too
                 window.location.href = 'index.html';
             }
         }
@@ -431,30 +425,44 @@
             return null;
         }
 
+        // REAL API CALL: Load cart from database
         async function loadCart() {
             try {
-                updateStatus('Loading cart items...');
+                updateStatus('Loading cart from database...');
                 
-                // TODO: Replace with actual API call when CartService is ready
-                // const response = await fetch(`${ENDPOINTS.getCart}/${currentUserId}`, {
-                //     method: 'GET',
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                //     }
-                // });
-                
-                // For now, simulate loading from localStorage (temporary)
-                const savedCart = localStorage.getItem('tempCart');
-                cartItems = savedCart ? JSON.parse(savedCart) : [];
+                const response = await fetch(`${CART_API_BASE}/api/cart/${currentUserId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                cartItems = Array.isArray(data) ? data : [];
                 
                 displayCart();
-                updateStatus('Cart loaded successfully');
+                updateStatus(`Cart loaded: ${cartItems.length} items found`);
                 
             } catch (error) {
                 console.error('Error loading cart:', error);
-                showMessage(`Failed to load cart: ${error.message}`, true);
-                updateStatus('Failed to load cart');
+                
+                // Fallback to localStorage if API fails (for transition period)
+                const savedCart = localStorage.getItem('tempCart');
+                if (savedCart) {
+                    cartItems = JSON.parse(savedCart);
+                    displayCart();
+                    updateStatus('Cart loaded from local storage (API failed)');
+                    showMessage('Loaded from local storage - API connection failed', true);
+                } else {
+                    cartItems = [];
+                    displayCart();
+                    showMessage(`Failed to load cart: ${error.message}`, true);
+                    updateStatus('Failed to load cart');
+                }
             } finally {
                 document.getElementById('loadingIndicator').style.display = 'none';
             }
@@ -475,20 +483,20 @@
             emptyCart.style.display = 'none';
 
             const itemsHTML = cartItems.map((item, index) => `
-                <div class="cart-item" data-item-id="${item.item_id || item.itemId}">
+                <div class="cart-item" data-item-id="${item.item_id}">
                     <div class="item-image">🍽️</div>
                     <div class="item-details">
-                        <div class="item-name">${item.item_name || item.itemName || 'Unknown Item'}</div>
+                        <div class="item-name">${item.item_name || item.item_id}</div>
                         <div class="item-price">$${parseFloat(item.price || 0).toFixed(2)} each</div>
                     </div>
                     <div class="quantity-controls">
-                        <button class="qty-btn" onclick="updateQuantity('${item.item_id || item.itemId}', ${(item.quantity || 1) - 1})" 
-                                ${(item.quantity || 1) <= 1 ? 'disabled' : ''}>−</button>
-                        <div class="quantity-display">${item.quantity || 1}</div>
-                        <button class="qty-btn" onclick="updateQuantity('${item.item_id || item.itemId}', ${(item.quantity || 1) + 1})">+</button>
+                        <button class="qty-btn" onclick="updateQuantity('${item.item_id}', ${item.quantity - 1})" 
+                                ${item.quantity <= 1 ? 'disabled' : ''}>−</button>
+                        <div class="quantity-display">${item.quantity}</div>
+                        <button class="qty-btn" onclick="updateQuantity('${item.item_id}', ${item.quantity + 1})">+</button>
                     </div>
-                    <div class="item-total">$${(parseFloat(item.price || 0) * (item.quantity || 1)).toFixed(2)}</div>
-                    <button class="remove-btn" onclick="removeFromCart('${item.item_id || item.itemId}')">🗑️</button>
+                    <div class="item-total">$${(parseFloat(item.price || 0) * item.quantity).toFixed(2)}</div>
+                    <button class="remove-btn" onclick="removeFromCart('${item.item_id}')">🗑️</button>
                 </div>
             `).join('');
 
@@ -498,7 +506,7 @@
 
         function updateCartSummary() {
             const subtotal = cartItems.reduce((sum, item) => 
-                sum + (parseFloat(item.price || 0) * (item.quantity || 1)), 0);
+                sum + (parseFloat(item.price || 0) * item.quantity), 0);
             const tax = subtotal * 0.08; // 8% tax
             const total = subtotal + tax;
 
@@ -507,28 +515,31 @@
             document.getElementById('total').textContent = `$${total.toFixed(2)}`;
         }
 
+        // REAL API CALL: Update quantity in database
         async function updateQuantity(itemId, newQuantity) {
             if (newQuantity < 1) return;
 
             try {
                 updateStatus('Updating quantity...');
 
-                // TODO: Replace with actual API call when CartService is ready
-                // const response = await fetch(`${ENDPOINTS.updateCart}/${currentUserId}/${itemId}`, {
-                //     method: 'PUT',
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                //     },
-                //     body: JSON.stringify({ quantity: newQuantity })
-                // });
+                const response = await fetch(`${CART_API_BASE}/api/cart/${currentUserId}/${itemId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ quantity: newQuantity })
+                });
 
-                // For now, update locally (temporary)
-                const itemIndex = cartItems.findIndex(item => 
-                    (item.item_id || item.itemId) === itemId);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const updatedItem = await response.json();
+                
+                // Update local cart items
+                const itemIndex = cartItems.findIndex(item => item.item_id === itemId);
                 if (itemIndex !== -1) {
-                    cartItems[itemIndex].quantity = newQuantity;
-                    localStorage.setItem('tempCart', JSON.stringify(cartItems));
+                    cartItems[itemIndex] = updatedItem;
                     displayCart();
                     showMessage('Quantity updated successfully!');
                 }
@@ -542,25 +553,26 @@
             }
         }
 
+        // REAL API CALL: Remove item from database
         async function removeFromCart(itemId) {
             if (!confirm('Remove this item from your cart?')) return;
 
             try {
                 updateStatus('Removing item...');
 
-                // TODO: Replace with actual API call when CartService is ready
-                // const response = await fetch(`${ENDPOINTS.removeFromCart}/${currentUserId}/${itemId}`, {
-                //     method: 'DELETE',
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-                //     }
-                // });
+                const response = await fetch(`${CART_API_BASE}/api/cart/${currentUserId}/${itemId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-                // For now, remove locally (temporary)
-                cartItems = cartItems.filter(item => 
-                    (item.item_id || item.itemId) !== itemId);
-                localStorage.setItem('tempCart', JSON.stringify(cartItems));
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                // Remove from local cart items
+                cartItems = cartItems.filter(item => item.item_id !== itemId);
                 displayCart();
                 showMessage('Item removed from cart!');
 
@@ -573,18 +585,25 @@
             }
         }
 
+        // REAL API CALL: Clear entire cart from database
         async function clearCart() {
             if (!confirm('Are you sure you want to clear your entire cart?')) return;
 
             try {
                 updateStatus('Clearing cart...');
 
-                // TODO: Replace with actual API call when CartService is ready
-                // Multiple DELETE calls or a special clear endpoint
+                const response = await fetch(`${CART_API_BASE}/api/cart/${currentUserId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-                // For now, clear locally (temporary)
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
                 cartItems = [];
-                localStorage.setItem('tempCart', JSON.stringify(cartItems));
                 displayCart();
                 showMessage('Cart cleared successfully!');
 
@@ -599,7 +618,7 @@
 
         function proceedToCheckout() {
             const total = cartItems.reduce((sum, item) => 
-                sum + (parseFloat(item.price || 0) * (item.quantity || 1)), 0);
+                sum + (parseFloat(item.price || 0) * item.quantity), 0);
             const totalWithTax = total * 1.08;
 
             // TODO: Implement actual checkout process
@@ -633,6 +652,7 @@
             if (!currentUserId) {
                 updateStatus('User ID not found');
                 showMessage('User ID not found. Some features may not work properly.', true);
+                return;
             }
 
             // Update welcome message
@@ -641,7 +661,7 @@
             document.getElementById('userWelcome').textContent = 
                 `Welcome, ${userName || userEmail}! Review your cart items`;
 
-            // Load cart
+            // Load cart from real API
             await loadCart();
         });
     </script>
