@@ -293,8 +293,8 @@
         
         const ENDPOINTS = {
             getUserProfile: `${USER_API_BASE}/api/users`, // GET /api/users/{user_id}
-            getUserWallet: `${WALLET_API_BASE}/api/wallets`, // GET /api/wallets/{user_id}
-            topupWallet: `${WALLET_API_BASE}/api/wallets/topup` // POST /api/wallets/topup
+            getUserWallet: `${WALLET_API_BASE}/api`, // GET /api/{user_id}
+            topupWallet: `${WALLET_API_BASE}/api/wallets` // POST /api/topup
         };
 
         let currentUserId = null;
