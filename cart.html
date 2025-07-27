@@ -491,22 +491,30 @@
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Wallet data received:', data);
+                    
+                    // FIXED: Properly set the wallet balance
                     walletBalance = parseFloat(data.balance || 0);
+                    console.log('Wallet balance set to:', walletBalance);
+                    
                     document.getElementById('walletBalance').textContent = `$${walletBalance.toFixed(2)}`;
                     document.getElementById('walletDisplay').style.display = 'block';
+                    
+                    // IMPORTANT: Update cart summary after setting balance
+                    updateCartSummary();
+                    
                 } else {
                     console.error('Wallet API failed:', response.status, response.statusText);
-                    // Set a default balance for testing
-                    walletBalance = 100.00;
-                    document.getElementById('walletBalance').textContent = `$${walletBalance.toFixed(2)} (Demo)`;
+                    walletBalance = 0;
+                    document.getElementById('walletBalance').textContent = '$0.00 (API Failed)';
                     document.getElementById('walletDisplay').style.display = 'block';
+                    updateCartSummary();
                 }
             } catch (error) {
                 console.error('Error loading wallet balance:', error);
-                // Set a default balance for testing
-                walletBalance = 100.00;
-                document.getElementById('walletBalance').textContent = `$${walletBalance.toFixed(2)} (Demo)`;
+                walletBalance = 0;
+                document.getElementById('walletBalance').textContent = '$0.00 (Error)';
                 document.getElementById('walletDisplay').style.display = 'block';
+                updateCartSummary();
             }
         }
 
