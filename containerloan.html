@@ -408,7 +408,7 @@
             try {
                 updateStatus('Loading container loans from database...');
                 
-                const response = await fetch(`${CONTAINER_API_BASE}/api/containers/${currentUserId}`, {
+                const response = await fetch(`${CONTAINER_API_BASE}/api/loan/containers/${currentUserId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -509,7 +509,7 @@
                 returnBtn.textContent = 'Returning...';
                 updateStatus('Processing container return...');
 
-                const response = await fetch(`${CONTAINER_API_BASE}/api/containers/${currentUserId}/${loanId}`, {
+                const response = await fetch(`${CONTAINER_API_BASE}/api/loan/containers/${currentUserId}/${loanId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
