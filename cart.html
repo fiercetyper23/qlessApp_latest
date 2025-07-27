@@ -477,7 +477,7 @@
             }
         }
 
-        // FIXED: Display cart with real item names and descriptions
+        // This function displays the cart items in the UI
         function displayCart() {
             const cartContainer = document.getElementById('cartContainer');
             const emptyCart = document.getElementById('emptyCart');
@@ -496,26 +496,24 @@
             for (let i = 0; i < cartItems.length; i++) {
                 const item = cartItems[i];
                 
-                // Use stored item details from database
+                // Use stored item details from database (no description)
                 const itemName = item.item_name || item.item_id;
                 const itemPrice = parseFloat(item.price || 0).toFixed(2);
-                const itemDesc = item.description || 'No description available';
                 
                 itemsHTML += '<div class="cart-item" data-item-id="' + item.item_id + '">' +
-                    '<div class="item-image">Image here</div>' +
+                    '<div class="item-image">🍽️</div>' +
                     '<div class="item-details">' +
                         '<div class="item-name">' + itemName + '</div>' +
-                        '<div class="item-description">' + itemDesc + '</div>' +
                         '<div class="item-price">$' + itemPrice + ' each</div>' +
                     '</div>' +
                     '<div class="quantity-controls">' +
                         '<button class="qty-btn" onclick="updateQuantity(\'' + item.item_id + '\', ' + (item.quantity - 1) + ')" ' + 
-                            (item.quantity <= 1 ? 'disabled' : '') + '>-</button>' +
+                            (item.quantity <= 1 ? 'disabled' : '') + '>−</button>' +
                         '<div class="quantity-display">' + item.quantity + '</div>' +
                         '<button class="qty-btn" onclick="updateQuantity(\'' + item.item_id + '\', ' + (item.quantity + 1) + ')">+</button>' +
                     '</div>' +
                     '<div class="item-total">$' + (parseFloat(item.price || 0) * item.quantity).toFixed(2) + '</div>' +
-                    '<button class="remove-btn" onclick="removeFromCart(\'' + item.item_id + '\')">Remove</button>' +
+                    '<button class="remove-btn" onclick="removeFromCart(\'' + item.item_id + '\')">🗑️</button>' +
                 '</div>';
             }
 
