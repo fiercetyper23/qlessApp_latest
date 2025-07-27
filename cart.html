@@ -344,7 +344,7 @@
 
     <!-- Loading indicator -->
     <div id="loadingIndicator" class="loading">
-        🛒 Loading your cart...
+        Loading your cart...
     </div>
 
     <!-- Wallet Balance Display -->
@@ -395,7 +395,7 @@
     <!-- Empty Cart -->
     <div class="cart-container" id="emptyCart" style="display: none;">
         <div class="empty-cart">
-            <div class="empty-cart-icon">🛒</div>
+            <div class="empty-cart-icon">So Empty...</div>
             <h3>Your cart is empty</h3>
             <p>Add some delicious items from our food menu!</p>
             <button class="btn btn-primary" onclick="continueShopping()" style="margin-top: 20px;">
@@ -591,7 +591,7 @@
                     '</div>' +
                     '<div class="quantity-controls">' +
                         '<button class="qty-btn" onclick="updateQuantity(\'' + item.item_id + '\', ' + (item.quantity - 1) + ')" ' + 
-                            (item.quantity <= 1 ? 'disabled' : '') + '>−</button>' +
+                            (item.quantity <= 1 ? 'disabled' : '') + '>-</button>' +
                         '<div class="quantity-display">' + item.quantity + '</div>' +
                         '<button class="qty-btn" onclick="updateQuantity(\'' + item.item_id + '\', ' + (item.quantity + 1) + ')">+</button>' +
                     '</div>' +

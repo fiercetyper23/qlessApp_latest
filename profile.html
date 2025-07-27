@@ -216,10 +216,15 @@
     <div class="card">
         <div class="profile-section">
             <img id="profileImage" class="profile-img" src="https://via.placeholder.com/150" alt="Profile Picture">
-            <br>
-            <button class="btn btn-primary" onclick="openProfilePictureModal()" style="margin-top: 10px;">
-                Add/Update Profile Picture
-            </button>
+            
+            <div style="margin-top: 15px; max-width: 400px; margin-left: auto; margin-right: auto;">
+                <input type="url" id="profilePictureUrl" placeholder="Enter new profile picture URL" 
+                       style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 4px; margin-bottom: 10px; box-sizing: border-box;">
+                <button class="btn btn-primary" onclick="updateProfilePicture()" style="width: 100%;">
+                    Update Profile Picture
+                </button>
+                <div id="profileUpdateMessage" style="margin-top: 10px;"></div>
+            </div>
         </div>
 
         <div class="user-info">
