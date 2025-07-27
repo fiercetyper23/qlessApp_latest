@@ -262,10 +262,12 @@
     <script>
         const ITEMS_API_BASE_URL = 'https://q29jdqrzhk.execute-api.ap-southeast-2.amazonaws.com/prod';
         const CART_API_BASE_URL = 'https://x1otrcbnaj.execute-api.ap-southeast-2.amazonaws.com/prod';
+        const FAVORITES_API_BASE_URL = 'https://2se2a3kt27.execute-api.ap-southeast-2.amazonaws.com/prod';
         
         const ENDPOINTS = {
             items: ITEMS_API_BASE_URL + '/api/items',
-            cart: CART_API_BASE_URL + '/api/cart'
+            cart: CART_API_BASE_URL + '/api/cart',
+            favorites: FAVORITES_API_BASE_URL + '/api/favourites'
         };
 
         let allFoodItems = [];
@@ -332,21 +334,37 @@
         }
 
         // Load user's favorites from localStorage
-        async function loadUserFavorites() {
-            try {
-                const userId = getUserId();
-                if (!userId) return;
+async function loadUserFavorites() {
+    try {
+        const userId = getUserId();
+        if (!userId) return;
 
-                // Load from localStorage temporarily
-                const savedFavorites = localStorage.getItem('tempFavorites');
-                const favoriteItems = savedFavorites ? JSON.parse(savedFavorites) : [];
-                userFavorites = favoriteItems.map(function(item) { return item.item_id; });
-                
-            } catch (error) {
-                console.error('Error loading favorites:', error);
-                userFavorites = [];
+        const response = await fetch(ENDPOINTS.favorites + '/' + userId, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
             }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            userFavorites = Array.isArray(data) ? data.map(function(item) { return item.item_id; }) : [];
+            console.log('Loaded favorites from API:', userFavorites);
+        } else {
+            console.log('API failed, using localStorage fallback');
+            const savedFavorites = localStorage.getItem('tempFavorites');
+            const favoriteItems = savedFavorites ? JSON.parse(savedFavorites) : [];
+            userFavorites = favoriteItems.map(function(item) { return item.item_id; });
         }
+        
+    } catch (error) {
+        console.error('Error loading favorites from API:', error);
+        // Fallback to localStorage
+        const savedFavorites = localStorage.getItem('tempFavorites');
+        const favoriteItems = savedFavorites ? JSON.parse(savedFavorites) : [];
+        userFavorites = favoriteItems.map(function(item) { return item.item_id; });
+    }
+}
 
         // Render food items with favorite status
         function renderFoodItems(items) {
@@ -474,70 +492,120 @@
         }
 
         // Toggle favorite with localStorage
-        async function toggleFavorite(itemId, itemName, price, description, vendorId, imageUrl) {
-            try {
-                const userId = getUserId();
-                if (!userId) {
-                    showError('User ID not found. Please log in again.');
-                    return;
-                }
-
-                // Get current favorites from localStorage
-                let savedFavorites = localStorage.getItem('tempFavorites');
-                let favoriteItems = savedFavorites ? JSON.parse(savedFavorites) : [];
-                
-                const isFavorite = userFavorites.includes(itemId);
-
-                if (isFavorite) {
-                    // Remove from favorites
-                    updateStatus('Removing "' + itemName + '" from favorites...');
-
-                    favoriteItems = favoriteItems.filter(function(item) {
-                        return item.item_id !== itemId;
-                    });
-                    userFavorites = userFavorites.filter(function(id) { return id !== itemId; });
-                    
-                    updateStatus('"' + itemName + '" removed from favorites!');
-                    
-                } else {
-                    // Add to favorites
-                    updateStatus('Adding "' + itemName + '" to favorites...');
-
-                    const newFavorite = {
-                        user_id: userId,
-                        item_id: itemId,
-                        item_name: itemName,
-                        price: price,
-                        description: description,
-                        vendor_id: vendorId,
-                        image_url: imageUrl,
-                        timestamp: new Date().toISOString()
-                    };
-
-                    favoriteItems.push(newFavorite);
-                    userFavorites.push(itemId);
-                    
-                    updateStatus('"' + itemName + '" added to favorites!');
-                }
-
-                // Save to localStorage
-                localStorage.setItem('tempFavorites', JSON.stringify(favoriteItems));
-
-                // Re-render items to update favorite buttons
-                renderFoodItems(allFoodItems);
-
-                // Show success message briefly
-                setTimeout(function() {
-                    updateStatus('Loaded ' + allFoodItems.length + ' food items successfully!');
-                }, 3000);
-
-            } catch (error) {
-                console.error('Error toggling favorite:', error);
-                updateStatus('Failed to update favorites: ' + error.message);
-                showError('Error: ' + error.message);
-            }
+async function toggleFavorite(itemId, itemName, price, description, vendorId, imageUrl) {
+    try {
+        const userId = getUserId();
+        if (!userId) {
+            showError('User ID not found. Please log in again.');
+            return;
         }
 
+        const isFavorite = userFavorites.includes(itemId);
+
+        if (isFavorite) {
+            // Remove from favorites via API
+            updateStatus('Removing "' + itemName + '" from favorites...');
+
+            const response = await fetch(ENDPOINTS.favorites + '/' + userId + '/' + itemId, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+            }
+
+            // Update local list
+            userFavorites = userFavorites.filter(function(id) { return id !== itemId; });
+            
+            updateStatus('"' + itemName + '" removed from favorites!');
+            console.log('Removed from favorites via API');
+            
+        } else {
+            // Add to favorites via API
+            updateStatus('Adding "' + itemName + '" to favorites...');
+
+            const response = await fetch(ENDPOINTS.favorites, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    item_id: itemId,
+                    item_name: itemName,
+                    price: price,
+                    description: description,
+                    vendor_id: vendorId,
+                    image_url: imageUrl
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+            }
+
+            // Update local list
+            userFavorites.push(itemId);
+            
+            updateStatus('"' + itemName + '" added to favorites!');
+            console.log('Added to favorites via API');
+        }
+
+        // Re-render items to update favorite buttons
+        renderFoodItems(allFoodItems);
+
+        // Show success message briefly
+        setTimeout(function() {
+            updateStatus('Loaded ' + allFoodItems.length + ' food items successfully!');
+        }, 3000);
+
+    } catch (error) {
+        console.error('API Error:', error);
+        updateStatus('API failed, using localStorage fallback');
+        
+        // Fallback to localStorage if API fails
+        toggleFavoriteLocalStorage(itemId, itemName, price, description, vendorId, imageUrl);
+    }
+}
+
+// Keep your existing localStorage version as fallback:
+function toggleFavoriteLocalStorage(itemId, itemName, price, description, vendorId, imageUrl) {
+    const userId = getUserId();
+    if (!userId) return;
+
+    let savedFavorites = localStorage.getItem('tempFavorites');
+    let favoriteItems = savedFavorites ? JSON.parse(savedFavorites) : [];
+    
+    const isFavorite = userFavorites.includes(itemId);
+
+    if (isFavorite) {
+        favoriteItems = favoriteItems.filter(function(item) {
+            return item.item_id !== itemId;
+        });
+        userFavorites = userFavorites.filter(function(id) { return id !== itemId; });
+        updateStatus('"' + itemName + '" removed from favorites (localStorage)!');
+    } else {
+        const newFavorite = {
+            user_id: userId,
+            item_id: itemId,
+            item_name: itemName,
+            price: price,
+            description: description,
+            vendor_id: vendorId,
+            image_url: imageUrl,
+            timestamp: new Date().toISOString()
+        };
+        favoriteItems.push(newFavorite);
+        userFavorites.push(itemId);
+        updateStatus('"' + itemName + '" added to favorites (localStorage)!');
+    }
+
+    localStorage.setItem('tempFavorites', JSON.stringify(favoriteItems));
+    renderFoodItems(allFoodItems);
+}
         async function updateCartIndicator() {
             const indicator = document.getElementById('cartIndicator');
             const count = document.getElementById('cartCount');
