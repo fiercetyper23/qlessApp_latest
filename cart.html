@@ -708,6 +708,16 @@
             }
         }
 
+        // Function for calculating cart total
+        function calculateCartTotal() {
+            const subtotal = cartItems.reduce(function(sum, item) {
+                return sum + (parseFloat(item.price || 0) * item.quantity);
+            }, 0);
+            const tax = subtotal * 0.08;
+            const total = subtotal + tax;
+            return parseFloat(total.toFixed(2));
+}
+
         // NEW: Confirm Purchase Function with full integration
         async function confirmPurchase() {
             const userId = localStorage.getItem('userId');
