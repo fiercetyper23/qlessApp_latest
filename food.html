@@ -234,7 +234,7 @@
         
         <div style="display: flex; align-items: center;">
             <div class="nav-links">
-                <a href="favorites.html" style="color: #e74c3c;">❤️ Favorites</a>
+                <a href="favourites.html" style="color: #e74c3c;">Favorites</a>
                 <a href="cart.html">🛒 My Cart</a>
                 <a href="profile.html">Profile</a>
             </div>
@@ -366,10 +366,10 @@
                 
                 const imageHTML = item.image_url ? 
                     '<img src="' + item.image_url + '" alt="' + item.item_name + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display=\'none\'">' : 
-                    '🍽️ ' + item.item_name;
+                    '' + item.item_name;
 
                 // Add favorite badge if item is favorited
-                const favoriteBadge = isFavorite ? '<div class="favorite-badge">❤️ Favorite</div>' : '';
+                const favoriteBadge = isFavorite ? '<div class="favorite-badge">Favourites</div>' : '';
 
                 itemsHTML += '<div class="food-card" data-item-id="' + item.item_id + '">' +
                     favoriteBadge +
@@ -381,7 +381,7 @@
                         '<div class="vendor-info">Vendor: ' + (item.vendor_id || 'Unknown') + '</div>' +
                         '<div class="food-actions">' +
                             '<button class="btn ' + (isFavorite ? 'btn-danger' : 'btn-secondary') + '" onclick="toggleFavorite(\'' + item.item_id + '\', \'' + item.item_name + '\', ' + item.price + ', \'' + (item.description || '').replace(/'/g, '&apos;') + '\', \'' + (item.vendor_id || '') + '\', \'' + (item.image_url || '') + '\')">' +
-                                (isFavorite ? 'Remove ❤️' : 'Favorite ❤️') +
+                                (isFavorite ? 'Remove From Favorites' : 'Add To Favorites') +
                             '</button>' +
                             '<button class="btn btn-primary" onclick="addToCart(\'' + item.item_id + '\', \'' + item.item_name + '\', ' + item.price + ')">Add to Cart</button>' +
                         '</div>' +
@@ -441,7 +441,7 @@
                 
                 await updateCartIndicator();
                 
-                updateStatus('✅ "' + itemName + '" added to cart successfully!');
+                updateStatus('"' + itemName + '" added to cart successfully!');
                 
                 setTimeout(function() {
                     updateStatus('Loaded ' + allFoodItems.length + ' food items successfully!');
@@ -468,7 +468,7 @@
                 localStorage.setItem('tempCart', JSON.stringify(cartItems));
                 
                 updateCartIndicator();
-                updateStatus('⚠️ Added "' + itemName + '" to local cart (API failed)');
+                updateStatus('Added "' + itemName + '" to local cart (API failed)');
                 showError('API Error: ' + error.message + '. Item saved locally.');
             }
         }
@@ -497,7 +497,7 @@
                     });
                     userFavorites = userFavorites.filter(function(id) { return id !== itemId; });
                     
-                    updateStatus('✅ "' + itemName + '" removed from favorites!');
+                    updateStatus('"' + itemName + '" removed from favorites!');
                     
                 } else {
                     // Add to favorites
@@ -517,7 +517,7 @@
                     favoriteItems.push(newFavorite);
                     userFavorites.push(itemId);
                     
-                    updateStatus('✅ "' + itemName + '" added to favorites!');
+                    updateStatus('"' + itemName + '" added to favorites!');
                 }
 
                 // Save to localStorage
@@ -533,7 +533,7 @@
 
             } catch (error) {
                 console.error('Error toggling favorite:', error);
-                updateStatus('⚠️ Failed to update favorites: ' + error.message);
+                updateStatus('Failed to update favorites: ' + error.message);
                 showError('Error: ' + error.message);
             }
         }
