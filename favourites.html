@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QLess - My Favorites</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .text-center {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .text-center h1 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .text-center p {
+            color: #7f8c8d;
+        }
+        .header-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-info {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .nav-links a {
+            margin: 0 10px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        .logout-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 15px;
+        }
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+        .favorites-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .favorites-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        .favorites-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .clear-favorites-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .clear-favorites-btn:hover {
+            background-color: #c0392b;
+        }
+        .food-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .food-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.2s ease;
+            position: relative;
+        }
+        .food-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .favorite-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #e74c3c;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .food-image {
+            width: 100%;
+            height: 200px;
+            background-color: #ecf0f1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #95a5a6;
+            font-size: 18px;
+        }
+        .food-info {
+            padding: 20px;
+        }
+        .food-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        .food-description {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .food-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 12px;
+        }
+        .vendor-info {
+            font-size: 12px;
+            color: #95a5a6;
+            margin-bottom: 15px;
+        }
+        .food-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            flex: 1;
+        }
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        .empty-favorites {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+        .empty-favorites-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        .empty-favorites h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+        .error-message, .success-message {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .cart-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #e67e22;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 50px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .cart-indicator:hover {
+            background-color: #d35400;
+        }
+    </style>
+</head>
+<body>
+    <div class="text-center">
+        <h1>My Favorites</h1>
+        <p>Your saved favorite food items</p>
+    </div>
+
+    <div class="debug-info" id="debugInfo">
+        Loading your favorite items...
+    </div>
+
+    <div class="header-bar">
+        <div class="user-info">
+            <span id="userWelcome">Welcome! View your favorite items</span>
+        </div>
+        
+        <div style="display: flex; align-items: center;">
+            <div class="nav-links">
+                <a href="food.html">Food Menu</a>
+                <a href="cart.html">My Cart</a>
+                <a href="profile.html">Profile</a>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <div id="messageContainer"></div>
+
+    <div id="loadingIndicator" class="loading">
+        ❤️ Loading your favorites...
+    </div>
+
+    <div class="favorites-container" id="favoritesContainer" style="display: none;">
+        <div class="favorites-header">
+            <div class="favorites-title">❤️ My Favorites</div>
+            <button class="clear-favorites-btn" onclick="clearAllFavorites()" id="clearFavoritesBtn">Clear All</button>
+        </div>
+
+        <div id="favoritesGrid" class="food-grid">
+        </div>
+    </div>
+
+    <div class="favorites-container" id="emptyFavorites" style="display: none;">
+        <div class="empty-favorites">
+            <div class="empty-favorites-icon">💔</div>
+            <h3>No favorites yet</h3>
+            <p>Start adding items to your favorites from the food menu!</p>
+            <button class="btn btn-primary" onclick="browseFoodMenu()" style="margin-top: 20px;">
+                Browse Food Menu
+            </button>
+        </div>
+    </div>
+
+    <div class="cart-indicator" id="cartIndicator" onclick="viewCart()" style="display: none;">
+        Cart (<span id="cartCount">0</span>)
+    </div>
+
+    <script>
+        const ITEMS_API_BASE_URL = 'https://q29jdqrzhk.execute-api.ap-southeast-2.amazonaws.com/prod';
+        const CART_API_BASE_URL = 'https://x1otrcbnaj.execute-api.ap-southeast-2.amazonaws.com/prod';
+        const FAVORITES_API_BASE_URL = 'https://2se2a3kt27.execute-api.ap-southeast-2.amazonaws.com/prod';
+
+        const ENDPOINTS = {
+            favorites: FAVORITES_API_BASE_URL + '/api/favorites',
+            cart: CART_API_BASE_URL + '/api/cart'
+        };
+
+        let currentUserId = null;
+        let favoriteItems = [];
+
+        function updateStatus(message) {
+            document.getElementById('debugInfo').textContent = message;
+        }
+
+        function showMessage(message, isError = false) {
+            const container = document.getElementById('messageContainer');
+            container.innerHTML = '<div class="' + (isError ? 'error-message' : 'success-message') + '">' + message + '</div>';
+            setTimeout(function() {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        function isTokenValid(token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const currentTime = Math.floor(Date.now() / 1000);
+                return payload.exp > currentTime;
+            } catch (err) {
+                return false;
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('userEmail');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('tempCart');
+                localStorage.removeItem('tempFavorites');
+                window.location.href = 'index.html';
+            }
+        }
+
+        function getUserId() {
+            let userId = localStorage.getItem('userId');
+            if (userId) return userId;
+
+            const idToken = localStorage.getItem('idToken');
+            if (idToken) {
+                try {
+                    const base64Url = idToken.split('.')[1];
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join(''));
+                    const tokenData = JSON.parse(jsonPayload);
+                    userId = tokenData['custom:user_id'];
+                    if (userId) {
+                        localStorage.setItem('userId', userId);
+                        return userId;
+                    }
+                } catch (error) {
+                    console.error('Error parsing token:', error);
+                }
+            }
+            return null;
+        }
+
+        async function loadFavorites() {
+            try {
+                updateStatus('Loading favorites from database...');
+                
+                const response = await fetch(ENDPOINTS.favorites + '/' + currentUserId, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                }
+
+                const data = await response.json();
+                favoriteItems = Array.isArray(data) ? data : [];
+                
+                displayFavorites();
+                updateStatus('Favorites loaded: ' + favoriteItems.length + ' items found');
+                
+            } catch (error) {
+                console.error('Error loading favorites:', error);
+                
+                const savedFavorites = localStorage.getItem('tempFavorites');
+                if (savedFavorites) {
+                    favoriteItems = JSON.parse(savedFavorites);
+                    displayFavorites();
+                    updateStatus('Favorites loaded from local storage (API failed)');
+                    showMessage('Loaded from local storage - API connection failed', true);
+                } else {
+                    favoriteItems = [];
+                    displayFavorites();
+                    showMessage('Failed to load favorites: ' + error.message, true);
+                    updateStatus('Failed to load favorites');
+                }
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }
+        }
+
+        function displayFavorites() {
+            const favoritesContainer = document.getElementById('favoritesContainer');
+            const emptyFavorites = document.getElementById('emptyFavorites');
+            const favoritesGrid = document.getElementById('favoritesGrid');
+
+            if (favoriteItems.length === 0) {
+                favoritesContainer.style.display = 'none';
+                emptyFavorites.style.display = 'block';
+                return;
+            }
+
+            favoritesContainer.style.display = 'block';
+            emptyFavorites.style.display = 'none';
+
+            let itemsHTML = '';
+            for (let i = 0; i < favoriteItems.length; i++) {
+                const item = favoriteItems[i];
+                
+                const itemName = item.item_name || item.item_id;
+                const itemPrice = parseFloat(item.price || 0).toFixed(2);
+                const itemDesc = item.description || 'No description available';
+                
+                const imageHTML = item.image_url ? 
+                    '<img src="' + item.image_url + '" alt="' + itemName + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display=\'none\'">' : 
+                    '🍽️ ' + itemName;
+
+                itemsHTML += '<div class="food-card" data-item-id="' + item.item_id + '">' +
+                    '<div class="favorite-badge">Favorite</div>' +
+                    '<div class="food-image">' + imageHTML + '</div>' +
+                    '<div class="food-info">' +
+                        '<div class="food-name">' + itemName + '</div>' +
+                        '<div class="food-description">' + itemDesc + '</div>' +
+                        '<div class="food-price">$' + itemPrice + '</div>' +
+                        '<div class="vendor-info">Vendor: ' + (item.vendor_id || 'Unknown') + '</div>' +
+                        '<div class="food-actions">' +
+                            '<button class="btn btn-danger" onclick="removeFromFavorites(\'' + item.item_id + '\', \'' + itemName + '\')">Remove ❤️</button>' +
+                            '<button class="btn btn-primary" onclick="addToCart(\'' + item.item_id + '\', \'' + itemName + '\', ' + item.price + ')">Add to Cart</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }
+
+            favoritesGrid.innerHTML = itemsHTML;
+        }
+
+        async function removeFromFavorites(itemId, itemName) {
+            if (!confirm('Remove "' + itemName + '" from favorites?')) return;
+
+            try {
+                updateStatus('Removing from favorites...');
+
+                const response = await fetch(ENDPOINTS.favorites + '/' + currentUserId + '/' + itemId, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                }
+
+                favoriteItems = favoriteItems.filter(function(item) {
+                    return item.item_id !== itemId;
+                });
+                
+                displayFavorites();
+                showMessage('"' + itemName + '" removed from favorites!');
+                updateStatus('Item removed from favorites');
+
+            } catch (error) {
+                console.error('Error removing from favorites:', error);
+                showMessage('Failed to remove from favorites: ' + error.message, true);
+                updateStatus('Failed to remove from favorites');
+            }
+        }
+
+        async function clearAllFavorites() {
+            if (!confirm('Are you sure you want to clear all favorites?')) return;
+
+            try {
+                updateStatus('Clearing all favorites...');
+
+                const response = await fetch(ENDPOINTS.favorites + '/' + currentUserId, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                }
+
+                favoriteItems = [];
+                displayFavorites();
+                showMessage('All favorites cleared!');
+                updateStatus('All favorites cleared');
+
+            } catch (error) {
+                console.error('Error clearing favorites:', error);
+                showMessage('Failed to clear favorites: ' + error.message, true);
+                updateStatus('Failed to clear favorites');
+            }
+        }
+
+        async function addToCart(itemId, itemName, price) {
+            try {
+                updateStatus('Adding "' + itemName + '" to cart...');
+
+                const fullItem = favoriteItems.find(function(item) {
+                    return item.item_id === itemId;
+                });
+
+                const response = await fetch(ENDPOINTS.cart, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_id: currentUserId,
+                        item_id: itemId,
+                        quantity: 1,
+                        item_name: itemName,
+                        price: price,
+                        description: fullItem ? fullItem.description : ''
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                }
+
+                await updateCartIndicator();
+                showMessage('"' + itemName + '" added to cart!');
+                updateStatus('Item added to cart successfully');
+
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+                showMessage('Failed to add to cart: ' + error.message, true);
+                updateStatus('Failed to add to cart');
+            }
+        }
+
+        async function updateCartIndicator() {
+            const indicator = document.getElementById('cartIndicator');
+            const count = document.getElementById('cartCount');
+
+            try {
+                const response = await fetch(ENDPOINTS.cart + '/' + currentUserId, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const cartItems = await response.json();
+                    const totalItems = Array.isArray(cartItems) ? 
+                        cartItems.reduce(function(sum, item) { return sum + item.quantity; }, 0) : 0;
+
+                    if (totalItems > 0) {
+                        count.textContent = totalItems;
+                        indicator.style.display = 'block';
+                    } else {
+                        indicator.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating cart indicator:', error);
+            }
+        }
+
+        function viewCart() {
+            window.location.href = 'cart.html';
+        }
+
+        function browseFoodMenu() {
+            window.location.href = 'food.html';
+        }
+
+        window.addEventListener('load', async function() {
+            console.log('Favorites Page Loaded');
+
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken || !isTokenValid(accessToken)) {
+                alert('Session expired. Please log in again.');
+                localStorage.clear();
+                window.location.href = 'index.html';
+                return;
+            }
+
+            currentUserId = getUserId();
+            if (!currentUserId) {
+                updateStatus('User ID not found');
+                showMessage('User ID not found. Some features may not work properly.', true);
+                return;
+            }
+
+            const userName = localStorage.getItem('userName');
+            const userEmail = localStorage.getItem('userEmail');
+            document.getElementById('userWelcome').textContent = 
+                'Welcome, ' + (userName || userEmail) + '! View your favorite items';
+
+            await loadFavorites();
+            await updateCartIndicator();
+        });
+    </script>
+</body>
+</html>

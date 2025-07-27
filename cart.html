@@ -123,6 +123,12 @@
             color: #2c3e50;
             margin-bottom: 5px;
         }
+        .item-description {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+            line-height: 1.3;
+        }
         .item-price {
             font-size: 16px;
             color: #27ae60;
@@ -286,7 +292,7 @@
         Loading cart items...
     </div>
 
-    <!-- Header with user info -->
+    <!-- Header with user info and navigation -->
     <div class="header-bar">
         <div class="user-info">
             <span id="userWelcome">Welcome! Review your cart items</span>
@@ -295,6 +301,7 @@
         <div style="display: flex; align-items: center;">
             <div class="nav-links">
                 <a href="food.html">Food Menu</a>
+                <a href="favorites.html" style="color: #e74c3c;">❤️ Favorites</a>
                 <a href="profile.html">Profile</a>
             </div>
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
@@ -306,13 +313,13 @@
 
     <!-- Loading indicator -->
     <div id="loadingIndicator" class="loading">
-        Loading your cart...
+        🛒 Loading your cart...
     </div>
 
     <!-- Cart Container -->
     <div class="cart-container" id="cartContainer" style="display: none;">
         <div class="cart-header">
-            <div class="cart-title">My Cart</div>
+            <div class="cart-title">🛒 My Cart</div>
             <button class="clear-cart-btn" onclick="clearCart()" id="clearCartBtn">Clear Cart</button>
         </div>
 
@@ -351,7 +358,7 @@
     <!-- Empty Cart -->
     <div class="cart-container" id="emptyCart" style="display: none;">
         <div class="empty-cart">
-            <div class="empty-cart-icon">Cart</div>
+            <div class="empty-cart-icon">🛒</div>
             <h3>Your cart is empty</h3>
             <p>Add some delicious items from our food menu!</p>
             <button class="btn btn-primary" onclick="continueShopping()" style="margin-top: 20px;">
@@ -374,8 +381,8 @@
 
         function showMessage(message, isError = false) {
             const container = document.getElementById('messageContainer');
-            container.innerHTML = `<div class="${isError ? 'error-message' : 'success-message'}">${message}</div>`;
-            setTimeout(() => {
+            container.innerHTML = '<div class="' + (isError ? 'error-message' : 'success-message') + '">' + message + '</div>';
+            setTimeout(function() {
                 container.innerHTML = '';
             }, 5000);
         }
@@ -396,7 +403,8 @@
                 localStorage.removeItem('userName');
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('userId');
-                localStorage.removeItem('tempCart'); // Clean up temp cart too
+                localStorage.removeItem('tempCart');
+                localStorage.removeItem('tempFavorites');
                 window.location.href = 'index.html';
             }
         }
@@ -410,8 +418,9 @@
                 try {
                     const base64Url = idToken.split('.')[1];
                     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
-                        '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join(''));
                     const tokenData = JSON.parse(jsonPayload);
                     userId = tokenData['custom:user_id'];
                     if (userId) {
@@ -430,7 +439,7 @@
             try {
                 updateStatus('Loading cart from database...');
                 
-                const response = await fetch(`${CART_API_BASE}/api/cart/${currentUserId}`, {
+                const response = await fetch(CART_API_BASE + '/api/cart/' + currentUserId, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
@@ -438,14 +447,14 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
                 }
 
                 const data = await response.json();
                 cartItems = Array.isArray(data) ? data : [];
                 
                 displayCart();
-                updateStatus(`Cart loaded: ${cartItems.length} items found`);
+                updateStatus('Cart loaded: ' + cartItems.length + ' items found');
                 
             } catch (error) {
                 console.error('Error loading cart:', error);
@@ -460,7 +469,7 @@
                 } else {
                     cartItems = [];
                     displayCart();
-                    showMessage(`Failed to load cart: ${error.message}`, true);
+                    showMessage('Failed to load cart: ' + error.message, true);
                     updateStatus('Failed to load cart');
                 }
             } finally {
@@ -468,6 +477,7 @@
             }
         }
 
+        // FIXED: Display cart with real item names and descriptions
         function displayCart() {
             const cartContainer = document.getElementById('cartContainer');
             const emptyCart = document.getElementById('emptyCart');
@@ -482,37 +492,47 @@
             cartContainer.style.display = 'block';
             emptyCart.style.display = 'none';
 
-            const itemsHTML = cartItems.map((item, index) => `
-                <div class="cart-item" data-item-id="${item.item_id}">
-                    <div class="item-image">Image here</div>
-                    <div class="item-details">
-                        <div class="item-name">${item.item_name || item.item_id}</div>
-                        <div class="item-price">$${parseFloat(item.price || 0).toFixed(2)} each</div>
-                    </div>
-                    <div class="quantity-controls">
-                        <button class="qty-btn" onclick="updateQuantity('${item.item_id}', ${item.quantity - 1})" 
-                                ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
-                        <div class="quantity-display">${item.quantity}</div>
-                        <button class="qty-btn" onclick="updateQuantity('${item.item_id}', ${item.quantity + 1})">+</button>
-                    </div>
-                    <div class="item-total">$${(parseFloat(item.price || 0) * item.quantity).toFixed(2)}</div>
-                    <button class="remove-btn" onclick="removeFromCart('${item.item_id}')">Remove</button>
-                </div>
-            `).join('');
+            let itemsHTML = '';
+            for (let i = 0; i < cartItems.length; i++) {
+                const item = cartItems[i];
+                
+                // Use stored item details from database
+                const itemName = item.item_name || item.item_id;
+                const itemPrice = parseFloat(item.price || 0).toFixed(2);
+                const itemDesc = item.description || 'No description available';
+                
+                itemsHTML += '<div class="cart-item" data-item-id="' + item.item_id + '">' +
+                    '<div class="item-image">🍽️</div>' +
+                    '<div class="item-details">' +
+                        '<div class="item-name">' + itemName + '</div>' +
+                        '<div class="item-description">' + itemDesc + '</div>' +
+                        '<div class="item-price">$' + itemPrice + ' each</div>' +
+                    '</div>' +
+                    '<div class="quantity-controls">' +
+                        '<button class="qty-btn" onclick="updateQuantity(\'' + item.item_id + '\', ' + (item.quantity - 1) + ')" ' + 
+                            (item.quantity <= 1 ? 'disabled' : '') + '>−</button>' +
+                        '<div class="quantity-display">' + item.quantity + '</div>' +
+                        '<button class="qty-btn" onclick="updateQuantity(\'' + item.item_id + '\', ' + (item.quantity + 1) + ')">+</button>' +
+                    '</div>' +
+                    '<div class="item-total">$' + (parseFloat(item.price || 0) * item.quantity).toFixed(2) + '</div>' +
+                    '<button class="remove-btn" onclick="removeFromCart(\'' + item.item_id + '\')">🗑️</button>' +
+                '</div>';
+            }
 
             cartItemsDiv.innerHTML = itemsHTML;
             updateCartSummary();
         }
 
         function updateCartSummary() {
-            const subtotal = cartItems.reduce((sum, item) => 
-                sum + (parseFloat(item.price || 0) * item.quantity), 0);
+            const subtotal = cartItems.reduce(function(sum, item) {
+                return sum + (parseFloat(item.price || 0) * item.quantity);
+            }, 0);
             const tax = subtotal * 0.08; // 8% tax
             const total = subtotal + tax;
 
-            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-            document.getElementById('tax').textContent = `$${tax.toFixed(2)}`;
-            document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+            document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+            document.getElementById('tax').textContent = '$' + tax.toFixed(2);
+            document.getElementById('total').textContent = '$' + total.toFixed(2);
         }
 
         // REAL API CALL: Update quantity in database
@@ -522,7 +542,7 @@
             try {
                 updateStatus('Updating quantity...');
 
-                const response = await fetch(`${CART_API_BASE}/api/cart/${currentUserId}/${itemId}`, {
+                const response = await fetch(CART_API_BASE + '/api/cart/' + currentUserId + '/' + itemId, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -531,13 +551,15 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
                 }
 
                 const updatedItem = await response.json();
                 
                 // Update local cart items
-                const itemIndex = cartItems.findIndex(item => item.item_id === itemId);
+                const itemIndex = cartItems.findIndex(function(item) {
+                    return item.item_id === itemId;
+                });
                 if (itemIndex !== -1) {
                     cartItems[itemIndex] = updatedItem;
                     displayCart();
@@ -548,7 +570,7 @@
 
             } catch (error) {
                 console.error('Error updating quantity:', error);
-                showMessage(`Failed to update quantity: ${error.message}`, true);
+                showMessage('Failed to update quantity: ' + error.message, true);
                 updateStatus('Failed to update quantity');
             }
         }
@@ -560,7 +582,7 @@
             try {
                 updateStatus('Removing item...');
 
-                const response = await fetch(`${CART_API_BASE}/api/cart/${currentUserId}/${itemId}`, {
+                const response = await fetch(CART_API_BASE + '/api/cart/' + currentUserId + '/' + itemId, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json'
@@ -568,11 +590,13 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
                 }
 
                 // Remove from local cart items
-                cartItems = cartItems.filter(item => item.item_id !== itemId);
+                cartItems = cartItems.filter(function(item) {
+                    return item.item_id !== itemId;
+                });
                 displayCart();
                 showMessage('Item removed from cart!');
 
@@ -580,7 +604,7 @@
 
             } catch (error) {
                 console.error('Error removing item:', error);
-                showMessage(`Failed to remove item: ${error.message}`, true);
+                showMessage('Failed to remove item: ' + error.message, true);
                 updateStatus('Failed to remove item');
             }
         }
@@ -592,7 +616,7 @@
             try {
                 updateStatus('Clearing cart...');
 
-                const response = await fetch(`${CART_API_BASE}/api/cart/${currentUserId}`, {
+                const response = await fetch(CART_API_BASE + '/api/cart/' + currentUserId, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json'
@@ -600,7 +624,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
                 }
 
                 cartItems = [];
@@ -611,14 +635,15 @@
 
             } catch (error) {
                 console.error('Error clearing cart:', error);
-                showMessage(`Failed to clear cart: ${error.message}`, true);
+                showMessage('Failed to clear cart: ' + error.message, true);
                 updateStatus('Failed to clear cart');
             }
         }
 
         function proceedToCheckout() {
-            const total = cartItems.reduce((sum, item) => 
-                sum + (parseFloat(item.price || 0) * item.quantity), 0);
+            const total = cartItems.reduce(function(sum, item) {
+                return sum + (parseFloat(item.price || 0) * item.quantity);
+            }, 0);
             const totalWithTax = total * 1.08;
 
             // TODO: Implement actual checkout process
@@ -627,7 +652,7 @@
             // 2. Transaction creation
             // 3. Order confirmation
 
-            alert(`Checkout functionality coming soon!\n\nTotal: $${totalWithTax.toFixed(2)}\n\nThis will integrate with your wallet and transaction services.`);
+            alert('Checkout functionality coming soon!\n\nTotal: $' + totalWithTax.toFixed(2) + '\n\nThis will integrate with your wallet and transaction services.');
         }
 
         function continueShopping() {
@@ -635,7 +660,7 @@
         }
 
         // Initialize page
-        window.addEventListener('load', async () => {
+        window.addEventListener('load', async function() {
             console.log('Cart Page Loaded');
 
             // Check authentication
@@ -659,7 +684,7 @@
             const userName = localStorage.getItem('userName');
             const userEmail = localStorage.getItem('userEmail');
             document.getElementById('userWelcome').textContent = 
-                `Welcome, ${userName || userEmail}! Review your cart items`;
+                'Welcome, ' + (userName || userEmail) + '! Review your cart items';
 
             // Load cart from real API
             await loadCart();
