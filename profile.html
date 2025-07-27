@@ -302,6 +302,7 @@
         
         const ENDPOINTS = {
             getUserProfile: `${USER_API_BASE}/api/users`, // GET /api/users/{user_id}
+            updateProfile: `${USER_API_BASE}/api/users`, // PUT /api/users/{user_id}
             getUserWallet: `${WALLET_API_BASE}/api`, // GET /api/wallets/{user_id}
             topupWallet: `${WALLET_API_BASE}/api/topup` // POST /api/topup
         };
@@ -495,9 +496,55 @@
             loadWalletData();
         }
 
+        // Update Profile Picture Function - THIS WAS MISSING!
+        async function updateProfilePicture() {
+            const url = document.getElementById('profilePictureUrl').value.trim();
+            
+            if (!url) {
+                showMessage('profileUpdateMessage', 'Please enter a valid image URL.', true);
+                return;
+            }
+
+            try {
+                updateStatus('Updating profile picture...');
+
+                const response = await fetch(`${ENDPOINTS.updateProfile}/${currentUserId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        profile_picture: url
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    // Update the profile image immediately
+                    document.getElementById('profileImage').src = url;
+                    
+                    // Clear the input field
+                    document.getElementById('profilePictureUrl').value = '';
+                    
+                    showMessage('profileUpdateMessage', 'Profile picture updated successfully!');
+                    updateStatus('Profile picture updated successfully');
+                    
+                } else {
+                    const errorData = await response.text();
+                    throw new Error(`Failed to update: ${errorData}`);
+                }
+                
+            } catch (error) {
+                console.error('Error updating profile picture:', error);
+                showMessage('profileUpdateMessage', `Failed to update profile picture: ${error.message}`, true);
+                updateStatus('Failed to update profile picture');
+            }
+        }
+
         // Initialize page
         window.addEventListener('load', async () => {
-            console.log('👤 Profile Page Loaded');
+            console.log('Profile Page Loaded');
 
             // Check authentication
             const accessToken = localStorage.getItem('accessToken');
