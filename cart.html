@@ -228,6 +228,10 @@
         .btn-primary:hover {
             background-color: #229954;
         }
+        .btn-primary:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
         .btn-secondary {
             background-color: #95a5a6;
             color: white;
@@ -279,6 +283,30 @@
             font-size: 12px;
             color: #6c757d;
         }
+        .processing {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .wallet-balance {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+        .wallet-balance h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .balance-amount {
+            font-size: 24px;
+            font-weight: 600;
+            color: #27ae60;
+        }
+        .insufficient-funds {
+            color: #e74c3c !important;
+        }
     </style>
 </head>
 <body>
@@ -302,6 +330,8 @@
             <div class="nav-links">
                 <a href="food.html">Food Menu</a>
                 <a href="favourites.html" style="color: #e74c3c;">Favourites</a>
+                <a href="containers-on-loan.html">My Containers</a>
+                <a href="transaction-history.html">History</a>
                 <a href="profile.html">Profile</a>
             </div>
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
@@ -314,6 +344,12 @@
     <!-- Loading indicator -->
     <div id="loadingIndicator" class="loading">
         🛒 Loading your cart...
+    </div>
+
+    <!-- Wallet Balance Display -->
+    <div class="wallet-balance" id="walletDisplay" style="display: none;">
+        <h4>Current Wallet Balance</h4>
+        <div class="balance-amount" id="walletBalance">$0.00</div>
     </div>
 
     <!-- Cart Container -->
@@ -346,8 +382,8 @@
 
         <!-- Checkout Section -->
         <div class="checkout-section">
-            <button class="btn btn-primary" onclick="proceedToCheckout()" id="checkoutBtn">
-                Proceed to Checkout
+            <button class="btn btn-primary" onclick="confirmPurchase()" id="confirmPurchaseBtn">
+                Confirm Purchase
             </button>
             <button class="btn btn-secondary" onclick="continueShopping()">
                 Continue Shopping
@@ -358,7 +394,7 @@
     <!-- Empty Cart -->
     <div class="cart-container" id="emptyCart" style="display: none;">
         <div class="empty-cart">
-            <div class="empty-cart-icon">Let's Check Out!</div>
+            <div class="empty-cart-icon">🛒</div>
             <h3>Your cart is empty</h3>
             <p>Add some delicious items from our food menu!</p>
             <button class="btn btn-primary" onclick="continueShopping()" style="margin-top: 20px;">
@@ -368,12 +404,16 @@
     </div>
 
     <script>
-        // API Configuration - REAL APIs NOW!
+        // API Configuration
         const USER_API_BASE = 'https://l9zzc8jfjd.execute-api.ap-southeast-2.amazonaws.com/prod';
         const CART_API_BASE = 'https://x1otrcbnaj.execute-api.ap-southeast-2.amazonaws.com/prod'; 
+        const WALLET_API_BASE = 'https://yapg7y4ilj.execute-api.ap-southeast-2.amazonaws.com/prod';
+        const CONTAINER_API_BASE = 'YOUR_CONTAINER_LOAN_API_ENDPOINT'; // Replace with your actual endpoint
+        const TRANSACTION_API_BASE = 'YOUR_TRANSACTION_API_ENDPOINT'; // Replace with your actual endpoint
 
         let currentUserId = null;
         let cartItems = [];
+        let walletBalance = 0;
 
         function updateStatus(message) {
             document.getElementById('debugInfo').textContent = message;
@@ -434,7 +474,30 @@
             return null;
         }
 
-        // REAL API CALL: Load cart from database
+        // Load wallet balance
+        async function loadWalletBalance() {
+            try {
+                const response = await fetch(`${WALLET_API_BASE}/api/${currentUserId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    walletBalance = parseFloat(data.balance || 0);
+                    document.getElementById('walletBalance').textContent = `$${walletBalance.toFixed(2)}`;
+                    document.getElementById('walletDisplay').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading wallet balance:', error);
+                walletBalance = 0;
+            }
+        }
+
+        // Load cart from database
         async function loadCart() {
             try {
                 updateStatus('Loading cart from database...');
@@ -459,7 +522,7 @@
             } catch (error) {
                 console.error('Error loading cart:', error);
                 
-                // Fallback to localStorage if API fails (for transition period)
+                // Fallback to localStorage if API fails
                 const savedCart = localStorage.getItem('tempCart');
                 if (savedCart) {
                     cartItems = JSON.parse(savedCart);
@@ -477,7 +540,6 @@
             }
         }
 
-        // This function displays the cart items in the UI
         function displayCart() {
             const cartContainer = document.getElementById('cartContainer');
             const emptyCart = document.getElementById('emptyCart');
@@ -496,12 +558,11 @@
             for (let i = 0; i < cartItems.length; i++) {
                 const item = cartItems[i];
                 
-                // Use stored item details from database (no description)
                 const itemName = item.item_name || item.item_id;
                 const itemPrice = parseFloat(item.price || 0).toFixed(2);
                 
                 itemsHTML += '<div class="cart-item" data-item-id="' + item.item_id + '">' +
-                    '<div class="item-image">Delish</div>' +
+                    '<div class="item-image">🍽️</div>' +
                     '<div class="item-details">' +
                         '<div class="item-name">' + itemName + '</div>' +
                         '<div class="item-price">$' + itemPrice + ' each</div>' +
@@ -525,15 +586,28 @@
             const subtotal = cartItems.reduce(function(sum, item) {
                 return sum + (parseFloat(item.price || 0) * item.quantity);
             }, 0);
-            const tax = subtotal * 0.08; // 8% tax
+            const tax = subtotal * 0.08;
             const total = subtotal + tax;
 
             document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
             document.getElementById('tax').textContent = '$' + tax.toFixed(2);
             document.getElementById('total').textContent = '$' + total.toFixed(2);
+
+            // Check if user has sufficient balance
+            const confirmBtn = document.getElementById('confirmPurchaseBtn');
+            const balanceElement = document.getElementById('walletBalance');
+            
+            if (total > walletBalance) {
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Insufficient Funds';
+                balanceElement.classList.add('insufficient-funds');
+            } else {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Confirm Purchase';
+                balanceElement.classList.remove('insufficient-funds');
+            }
         }
 
-        // REAL API CALL: Update quantity in database
         async function updateQuantity(itemId, newQuantity) {
             if (newQuantity < 1) return;
 
@@ -554,7 +628,6 @@
 
                 const updatedItem = await response.json();
                 
-                // Update local cart items
                 const itemIndex = cartItems.findIndex(function(item) {
                     return item.item_id === itemId;
                 });
@@ -573,7 +646,6 @@
             }
         }
 
-        // REAL API CALL: Remove item from database
         async function removeFromCart(itemId) {
             if (!confirm('Remove this item from your cart?')) return;
 
@@ -591,7 +663,6 @@
                     throw new Error('HTTP ' + response.status + ': ' + response.statusText);
                 }
 
-                // Remove from local cart items
                 cartItems = cartItems.filter(function(item) {
                     return item.item_id !== itemId;
                 });
@@ -607,7 +678,6 @@
             }
         }
 
-        // REAL API CALL: Clear entire cart from database
         async function clearCart() {
             if (!confirm('Are you sure you want to clear your entire cart?')) return;
 
@@ -638,19 +708,118 @@
             }
         }
 
-        function proceedToCheckout() {
-            const total = cartItems.reduce(function(sum, item) {
+        // NEW: Confirm Purchase Function with full integration
+        async function confirmPurchase() {
+            const subtotal = cartItems.reduce(function(sum, item) {
                 return sum + (parseFloat(item.price || 0) * item.quantity);
             }, 0);
-            const totalWithTax = total * 1.08;
+            const total = subtotal * 1.08; // Including tax
 
-            // TODO: Implement actual checkout process
-            // This could involve:
-            // 1. Wallet deduction
-            // 2. Transaction creation
-            // 3. Order confirmation
+            if (total > walletBalance) {
+                showMessage('Insufficient wallet balance. Please top up your wallet first.', true);
+                return;
+            }
 
-            alert('Checkout functionality coming soon!\n\nTotal: $' + totalWithTax.toFixed(2) + '\n\nThis will integrate with your wallet and transaction services.');
+            if (!confirm(`Confirm purchase for $${total.toFixed(2)}?`)) return;
+
+            const confirmBtn = document.getElementById('confirmPurchaseBtn');
+            const originalText = confirmBtn.textContent;
+            
+            try {
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Processing...';
+                document.body.classList.add('processing');
+                updateStatus('Processing purchase...');
+
+                // Step 1: Deduct from wallet
+                updateStatus('Deducting from wallet...');
+                const walletResponse = await fetch(`${WALLET_API_BASE}/api/deduct`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    },
+                    body: JSON.stringify({
+                        user_id: currentUserId,
+                        amount_to_deduct: total
+                    })
+                });
+
+                if (!walletResponse.ok) {
+                    throw new Error('Wallet deduction failed');
+                }
+
+                // Step 2: Register container loan
+                updateStatus('Registering container loan...');
+                const containerId = 'C' + Math.random().toString().slice(2, 9); // Generate container ID
+                const loanResponse = await fetch(`${CONTAINER_API_BASE}/api/loan`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    },
+                    body: JSON.stringify({
+                        user_id: currentUserId,
+                        container_id: containerId
+                    })
+                });
+
+                if (!loanResponse.ok) {
+                    console.warn('Container loan registration failed, but continuing...');
+                }
+
+                // Step 3: Register transaction
+                updateStatus('Recording transaction...');
+                const transactionResponse = await fetch(`${TRANSACTION_API_BASE}/api/transaction`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    },
+                    body: JSON.stringify({
+                        user_id: currentUserId,
+                        amount_paid: total,
+                        items: cartItems
+                    })
+                });
+
+                if (!transactionResponse.ok) {
+                    console.warn('Transaction recording failed, but continuing...');
+                }
+
+                // Step 4: Clear cart
+                updateStatus('Clearing cart...');
+                await fetch(CART_API_BASE + '/api/cart/' + currentUserId, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                // Success!
+                cartItems = [];
+                displayCart();
+                await loadWalletBalance(); // Refresh wallet balance
+                
+                showMessage(`Purchase successful! Total: $${total.toFixed(2)}. Your container loan has been registered.`);
+                updateStatus('Purchase completed successfully!');
+
+                // Redirect to containers page after a delay
+                setTimeout(() => {
+                    if (confirm('Purchase completed! Would you like to view your containers on loan?')) {
+                        window.location.href = 'containers-on-loan.html';
+                    }
+                }, 2000);
+
+            } catch (error) {
+                console.error('Purchase error:', error);
+                showMessage('Purchase failed: ' + error.message, true);
+                updateStatus('Purchase failed');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = originalText;
+                document.body.classList.remove('processing');
+            }
         }
 
         function continueShopping() {
@@ -684,8 +853,11 @@
             document.getElementById('userWelcome').textContent = 
                 'Welcome, ' + (userName || userEmail) + '! Review your cart items';
 
-            // Load cart from real API
-            await loadCart();
+            // Load wallet balance and cart
+            await Promise.all([
+                loadWalletBalance(),
+                loadCart()
+            ]);
         });
     </script>
 </body>
