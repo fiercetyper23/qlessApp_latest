@@ -475,187 +475,40 @@
         }
 
         // Load wallet balance
-async function loadWalletBalance() {
-    try {
-        console.log('Attempting to load wallet balance for user:', currentUserId);
-        
-        const response = await fetch(`${WALLET_API_BASE}/api/${currentUserId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
+        async function loadWalletBalance() {
+            try {
+                console.log('Attempting to load wallet balance for user:', currentUserId);
+                
+                const response = await fetch(`${WALLET_API_BASE}/api/${currentUserId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('Wallet API response status:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Wallet data received:', data);
+                    walletBalance = parseFloat(data.balance || 0);
+                    document.getElementById('walletBalance').textContent = `$${walletBalance.toFixed(2)}`;
+                    document.getElementById('walletDisplay').style.display = 'block';
+                } else {
+                    console.error('Wallet API failed:', response.status, response.statusText);
+                    // Set a default balance for testing
+                    walletBalance = 100.00;
+                    document.getElementById('walletBalance').textContent = `$${walletBalance.toFixed(2)} (Demo)`;
+                    document.getElementById('walletDisplay').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading wallet balance:', error);
+                // Set a default balance for testing
+                walletBalance = 100.00;
+                document.getElementById('walletBalance').textContent = `$${walletBalance.toFixed(2)} (Demo)`;
+                document.getElementById('walletDisplay').style.display = 'block';
             }
-        });
-
-        console.log('Wallet API response status:', response.status);
-        
-        if (response.ok) {
-            const data = await response.json();
-            console.log('Wallet data received:', data);
-            walletBalance = parseFloat(data.balance || 0);
-            document.getElementById('walletBalance').textContent = `$${walletBalance.toFixed(2)}`;
-            document.getElementById('walletDisplay').style.display = 'block';
-        } else {
-            console.error('Wallet API failed:', response.status, response.statusText);
-            // Set a default balance for testing
-            walletBalance = 100.00;
-            document.getElementById('walletBalance').textContent = `$${walletBalance.toFixed(2)} (Demo)`;
-            document.getElementById('walletDisplay').style.display = 'block';
         }
-    } catch (error) {
-        console.error('Error loading wallet balance:', error);
-        // Set a default balance for testing
-        walletBalance = 100.00;
-        document.getElementById('walletBalance').textContent = `$${walletBalance.toFixed(2)} (Demo)`;
-        document.getElementById('walletDisplay').style.display = 'block';
-    }
-}
-
-// Updated cart summary - with better logging
-function updateCartSummary() {
-    const subtotal = cartItems.reduce(function(sum, item) {
-        return sum + (parseFloat(item.price || 0) * item.quantity);
-    }, 0);
-    const tax = subtotal * 0.08;
-    const total = subtotal + tax;
-
-    console.log('Cart Summary:', { subtotal, tax, total, walletBalance });
-
-    document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
-    document.getElementById('tax').textContent = '$' + tax.toFixed(2);
-    document.getElementById('total').textContent = '$' + total.toFixed(2);
-
-    // Check if user has sufficient balance
-    const confirmBtn = document.getElementById('confirmPurchaseBtn');
-    const balanceElement = document.getElementById('walletBalance');
-    
-    console.log('Balance check:', { total, walletBalance, sufficient: total <= walletBalance });
-    
-    if (total > walletBalance) {
-        confirmBtn.disabled = true;
-        confirmBtn.textContent = 'Insufficient Funds';
-        balanceElement.classList.add('insufficient-funds');
-    } else {
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = 'Confirm Purchase';
-        balanceElement.classList.remove('insufficient-funds');
-    }
-}
-
-// Simplified confirm purchase - test each step
-async function confirmPurchase() {
-    const subtotal = cartItems.reduce(function(sum, item) {
-        return sum + (parseFloat(item.price || 0) * item.quantity);
-    }, 0);
-    const total = subtotal * 1.08;
-
-    console.log('Starting purchase process:', { total, walletBalance, currentUserId });
-
-    if (!confirm(`Confirm purchase for $${total.toFixed(2)}?`)) return;
-
-    const confirmBtn = document.getElementById('confirmPurchaseBtn');
-    const originalText = confirmBtn.textContent;
-    
-    try {
-        confirmBtn.disabled = true;
-        confirmBtn.textContent = 'Processing...';
-        updateStatus('Processing purchase...');
-
-        // Step 1: Test wallet deduction
-        updateStatus('Testing wallet API...');
-        console.log('Calling wallet API:', `${WALLET_API_BASE}/api/deduct`);
-        
-        const walletResponse = await fetch(`${WALLET_API_BASE}/api/deduct`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                user_id: currentUserId,
-                amount_to_deduct: total
-            })
-        });
-
-        console.log('Wallet response status:', walletResponse.status);
-        
-        if (walletResponse.ok) {
-            const walletData = await walletResponse.json();
-            console.log('✅ Wallet deduction successful:', walletData);
-            updateStatus('✅ Wallet deduction successful');
-        } else {
-            const errorData = await walletResponse.text();
-            console.error('❌ Wallet deduction failed:', errorData);
-            updateStatus('❌ Wallet API failed, continuing anyway for testing...');
-        }
-
-        // Step 2: Test container loan
-        updateStatus('Testing container API...');
-        const containerId = 'C' + Math.random().toString().slice(2, 9);
-        console.log('Calling container API:', `${CONTAINER_API_BASE}/api/loan`);
-        
-        const loanResponse = await fetch(`${CONTAINER_API_BASE}/api/loan`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                user_id: currentUserId,
-                container_id: containerId
-            })
-        });
-
-        console.log('Container response status:', loanResponse.status);
-        
-        if (loanResponse.ok) {
-            const loanData = await loanResponse.json();
-            console.log('✅ Container loan successful:', loanData);
-            updateStatus('✅ Container loan registered');
-        } else {
-            const errorData = await loanResponse.text();
-            console.error('❌ Container loan failed:', errorData);
-            updateStatus('❌ Container API failed, continuing anyway...');
-        }
-
-        // Step 3: Test transaction
-        updateStatus('Testing transaction API...');
-        console.log('Calling transaction API:', `${TRANSACTION_API_BASE}/api/transaction`);
-        
-        const transactionResponse = await fetch(`${TRANSACTION_API_BASE}/api/transaction`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                user_id: currentUserId,
-                amount_paid: total,
-                items: cartItems
-            })
-        });
-
-        console.log('Transaction response status:', transactionResponse.status);
-        
-        if (transactionResponse.ok) {
-            const transactionData = await transactionResponse.json();
-            console.log('✅ Transaction successful:', transactionData);
-            updateStatus('✅ Transaction recorded');
-        } else {
-            const errorData = await transactionResponse.text();
-            console.error('❌ Transaction failed:', errorData);
-            updateStatus('❌ Transaction API failed');
-        }
-
-        // Show results
-        showMessage('Purchase test completed! Check console for detailed results.');
-        updateStatus('Purchase test completed - check browser console');
-
-    } catch (error) {
-        console.error('Purchase error:', error);
-        showMessage('Purchase failed: ' + error.message, true);
-        updateStatus('Purchase failed: ' + error.message);
-    } finally {
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = originalText;
-    }
-}
 
         // Load cart from database
         async function loadCart() {
@@ -749,6 +602,8 @@ async function confirmPurchase() {
             const tax = subtotal * 0.08;
             const total = subtotal + tax;
 
+            console.log('Cart Summary:', { subtotal, tax, total, walletBalance });
+
             document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
             document.getElementById('tax').textContent = '$' + tax.toFixed(2);
             document.getElementById('total').textContent = '$' + total.toFixed(2);
@@ -756,6 +611,8 @@ async function confirmPurchase() {
             // Check if user has sufficient balance
             const confirmBtn = document.getElementById('confirmPurchaseBtn');
             const balanceElement = document.getElementById('walletBalance');
+            
+            console.log('Balance check:', { total, walletBalance, sufficient: total <= walletBalance });
             
             if (total > walletBalance) {
                 confirmBtn.disabled = true;
@@ -883,12 +740,9 @@ async function confirmPurchase() {
             const subtotal = cartItems.reduce(function(sum, item) {
                 return sum + (parseFloat(item.price || 0) * item.quantity);
             }, 0);
-            const total = subtotal * 1.08; // Including tax
+            const total = subtotal * 1.08;
 
-            if (total > walletBalance) {
-                showMessage('Insufficient wallet balance. Please top up your wallet first.', true);
-                return;
-            }
+            console.log('Starting purchase process:', { total, walletBalance, currentUserId });
 
             if (!confirm(`Confirm purchase for $${total.toFixed(2)}?`)) return;
 
@@ -900,8 +754,10 @@ async function confirmPurchase() {
                 confirmBtn.textContent = 'Processing...';
                 updateStatus('Processing purchase...');
 
-                // Step 1: Deduct from wallet (FIXED URL)
-                updateStatus('Deducting from wallet...');
+                // Step 1: Test wallet deduction
+                updateStatus('Testing wallet API...');
+                console.log('Calling wallet API:', `${WALLET_API_BASE}/api/deduct`);
+                
                 const walletResponse = await fetch(`${WALLET_API_BASE}/api/deduct`, {
                     method: 'POST',
                     headers: {
@@ -913,17 +769,22 @@ async function confirmPurchase() {
                     })
                 });
 
-                if (!walletResponse.ok) {
-                    const errorData = await walletResponse.json();
-                    throw new Error(`Wallet deduction failed: ${errorData.message || 'Unknown error'}`);
+                console.log('Wallet response status:', walletResponse.status);
+                
+                if (walletResponse.ok) {
+                    const walletData = await walletResponse.json();
+                    console.log('✅ Wallet deduction successful:', walletData);
+                    updateStatus('✅ Wallet deduction successful');
+                } else {
+                    const errorData = await walletResponse.text();
+                    console.error('❌ Wallet deduction failed:', errorData);
+                    updateStatus('❌ Wallet API failed, continuing anyway for testing...');
                 }
 
-                const walletData = await walletResponse.json();
-                console.log('Wallet deduction successful:', walletData);
-
-                // Step 2: Register container loan (FIXED URL)
-                updateStatus('Registering container loan...');
+                // Step 2: Test container loan
+                updateStatus('Testing container API...');
                 const containerId = 'C' + Math.random().toString().slice(2, 9);
+                console.log('Calling container API:', `${CONTAINER_API_BASE}/api/loan`);
                 
                 const loanResponse = await fetch(`${CONTAINER_API_BASE}/api/loan`, {
                     method: 'POST',
@@ -936,16 +797,22 @@ async function confirmPurchase() {
                     })
                 });
 
-                let loanData = null;
+                console.log('Container response status:', loanResponse.status);
+                
                 if (loanResponse.ok) {
-                    loanData = await loanResponse.json();
-                    console.log('Container loan registered:', loanData);
+                    const loanData = await loanResponse.json();
+                    console.log('✅ Container loan successful:', loanData);
+                    updateStatus('✅ Container loan registered');
                 } else {
-                    console.warn('Container loan registration failed, continuing...');
+                    const errorData = await loanResponse.text();
+                    console.error('❌ Container loan failed:', errorData);
+                    updateStatus('❌ Container API failed, continuing anyway...');
                 }
 
-                // Step 3: Register transaction (FIXED URL)
-                updateStatus('Recording transaction...');
+                // Step 3: Test transaction
+                updateStatus('Testing transaction API...');
+                console.log('Calling transaction API:', `${TRANSACTION_API_BASE}/api/transaction`);
+                
                 const transactionResponse = await fetch(`${TRANSACTION_API_BASE}/api/transaction`, {
                     method: 'POST',
                     headers: {
@@ -958,41 +825,21 @@ async function confirmPurchase() {
                     })
                 });
 
-                let transactionData = null;
-                if (transactionResponse.ok) {
-                    transactionData = await transactionResponse.json();
-                    console.log('Transaction recorded:', transactionData);
-                } else {
-                    console.warn('Transaction recording failed, continuing...');
-                }
-
-                // Step 4: Clear cart
-                updateStatus('Clearing cart...');
-                try {
-                    await fetch(`${CART_API_BASE}/api/cart/${currentUserId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                } catch (cartError) {
-                    console.warn('Cart clearing failed:', cartError);
-                }
-
-                // Success!
-                cartItems = [];
-                displayCart();
-                await loadWalletBalance(); // Refresh wallet balance
+                console.log('Transaction response status:', transactionResponse.status);
                 
-                showMessage(`Purchase successful! Total: $${total.toFixed(2)}. ${loanData ? 'Container loan registered.' : ''}`);
-                updateStatus('Purchase completed successfully!');
+                if (transactionResponse.ok) {
+                    const transactionData = await transactionResponse.json();
+                    console.log('✅ Transaction successful:', transactionData);
+                    updateStatus('✅ Transaction recorded');
+                } else {
+                    const errorData = await transactionResponse.text();
+                    console.error('❌ Transaction failed:', errorData);
+                    updateStatus('❌ Transaction API failed');
+                }
 
-                // Redirect after delay
-                setTimeout(() => {
-                    if (confirm('Purchase completed! Would you like to view your containers on loan?')) {
-                        window.location.href = 'containers-on-loan.html';
-                    }
-                }, 2000);
+                // Show results
+                showMessage('Purchase test completed! Check console for detailed results.');
+                updateStatus('Purchase test completed - check browser console');
 
             } catch (error) {
                 console.error('Purchase error:', error);
