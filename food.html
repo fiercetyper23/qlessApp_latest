@@ -431,11 +431,7 @@ async function loadUserFavorites() {
                     return;
                 }
 
-                // Find the full item details
-                const fullItem = allFoodItems.find(function(item) {
-                    return item.item_id === itemId;
-                });
-
+                // Send only essential data to Cart API (no description)
                 const response = await fetch(ENDPOINTS.cart, {
                     method: 'POST',
                     headers: {
@@ -446,8 +442,7 @@ async function loadUserFavorites() {
                         item_id: itemId,
                         quantity: 1,
                         item_name: itemName,
-                        price: price,
-                        description: fullItem ? fullItem.description : ''
+                        price: parseFloat(price)  // Ensure price is a number
                     })
                 });
 
@@ -468,17 +463,12 @@ async function loadUserFavorites() {
             } catch (error) {
                 console.error('Error adding item to cart:', error);
                 
-                // Find the full item details for fallback
-                const fullItem = allFoodItems.find(function(item) {
-                    return item.item_id === itemId;
-                });
-
+                // Fallback to localStorage (also without description)
                 const fallbackItem = { 
                     item_id: itemId,
                     item_name: itemName,
-                    price: price, 
-                    quantity: 1,
-                    description: fullItem ? fullItem.description : ''
+                    price: parseFloat(price), 
+                    quantity: 1
                 };
                 
                 let cartItems = JSON.parse(localStorage.getItem('tempCart') || '[]');
