@@ -301,7 +301,7 @@
         <div style="display: flex; align-items: center;">
             <div class="nav-links">
                 <a href="food.html">Food Menu</a>
-                <a href="favorites.html" style="color: #e74c3c;">Favourites</a>
+                <a href="favourites.html" style="color: #e74c3c;">Favourites</a>
                 <a href="profile.html">Profile</a>
             </div>
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
@@ -319,7 +319,7 @@
     <!-- Cart Container -->
     <div class="cart-container" id="cartContainer" style="display: none;">
         <div class="cart-header">
-            <div class="cart-title">🛒 My Cart</div>
+            <div class="cart-title">My Cart</div>
             <button class="clear-cart-btn" onclick="clearCart()" id="clearCartBtn">Clear Cart</button>
         </div>
 
@@ -502,7 +502,7 @@
                 const itemDesc = item.description || 'No description available';
                 
                 itemsHTML += '<div class="cart-item" data-item-id="' + item.item_id + '">' +
-                    '<div class="item-image">🍽️</div>' +
+                    '<div class="item-image">Image here</div>' +
                     '<div class="item-details">' +
                         '<div class="item-name">' + itemName + '</div>' +
                         '<div class="item-description">' + itemDesc + '</div>' +
@@ -510,12 +510,12 @@
                     '</div>' +
                     '<div class="quantity-controls">' +
                         '<button class="qty-btn" onclick="updateQuantity(\'' + item.item_id + '\', ' + (item.quantity - 1) + ')" ' + 
-                            (item.quantity <= 1 ? 'disabled' : '') + '>−</button>' +
+                            (item.quantity <= 1 ? 'disabled' : '') + '>-</button>' +
                         '<div class="quantity-display">' + item.quantity + '</div>' +
                         '<button class="qty-btn" onclick="updateQuantity(\'' + item.item_id + '\', ' + (item.quantity + 1) + ')">+</button>' +
                     '</div>' +
                     '<div class="item-total">$' + (parseFloat(item.price || 0) * item.quantity).toFixed(2) + '</div>' +
-                    '<button class="remove-btn" onclick="removeFromCart(\'' + item.item_id + '\')">🗑️</button>' +
+                    '<button class="remove-btn" onclick="removeFromCart(\'' + item.item_id + '\')">Remove</button>' +
                 '</div>';
             }
 
