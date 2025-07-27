@@ -584,7 +584,7 @@
                 const itemPrice = parseFloat(item.price || 0).toFixed(2);
                 
                 itemsHTML += '<div class="cart-item" data-item-id="' + item.item_id + '">' +
-                    '<div class="item-image">🍽️</div>' +
+                    '<div class="item-image">Food</div>' +
                     '<div class="item-details">' +
                         '<div class="item-name">' + itemName + '</div>' +
                         '<div class="item-price">$' + itemPrice + ' each</div>' +
@@ -782,8 +782,8 @@
                 
                 if (walletResponse.ok) {
                     const walletData = await walletResponse.json();
-                    console.log('✅ Wallet deduction successful:', walletData);
-                    updateStatus('✅ Wallet deduction successful');
+                    console.log('Wallet deduction successful:', walletData);
+                    updateStatus('Wallet deduction successful');
                     
                     // Update the local wallet balance immediately
                     walletBalance = walletData.new_balance || (walletBalance - total);
@@ -791,7 +791,7 @@
                     
                 } else {
                     const errorData = await walletResponse.text();
-                    console.error('❌ Wallet deduction failed:', errorData);
+                    console.error('Wallet deduction failed:', errorData);
                     throw new Error('Wallet deduction failed: ' + errorData);
                 }
 
@@ -816,12 +816,12 @@
                 let loanData = null;
                 if (loanResponse.ok) {
                     loanData = await loanResponse.json();
-                    console.log('✅ Container loan successful:', loanData);
-                    updateStatus('✅ Container loan registered');
+                    console.log('Container loan successful:', loanData);
+                    updateStatus('Container loan registered');
                 } else {
                     const errorData = await loanResponse.text();
-                    console.error('❌ Container loan failed:', errorData);
-                    updateStatus('❌ Container API failed, continuing anyway...');
+                    console.error('Container loan failed:', errorData);
+                    updateStatus('Container API failed, continuing anyway...');
                 }
 
                 // Step 3: Transaction
@@ -844,12 +844,12 @@
                 
                 if (transactionResponse.ok) {
                     const transactionData = await transactionResponse.json();
-                    console.log('✅ Transaction successful:', transactionData);
-                    updateStatus('✅ Transaction recorded');
+                    console.log('Transaction successful:', transactionData);
+                    updateStatus('Transaction recorded');
                 } else {
                     const errorData = await transactionResponse.text();
-                    console.error('❌ Transaction failed:', errorData);
-                    updateStatus('❌ Transaction API failed - check Lambda logs');
+                    console.error('Transaction failed:', errorData);
+                    updateStatus('Transaction API failed - check Lambda logs');
                 }
 
                 // Step 4: Clear cart and refresh
