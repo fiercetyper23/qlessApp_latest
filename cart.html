@@ -762,8 +762,8 @@
                 confirmBtn.textContent = 'Processing...';
                 updateStatus('Processing purchase...');
 
-                // Step 1: Test wallet deduction
-                updateStatus('Testing wallet API...');
+                // Step 1: Wallet deduction
+                updateStatus('Deducting from wallet...');
                 console.log('Calling wallet API:', `${WALLET_API_BASE}/api/deduct`);
                 
                 const walletResponse = await fetch(`${WALLET_API_BASE}/api/deduct`, {
@@ -783,14 +783,19 @@
                     const walletData = await walletResponse.json();
                     console.log('✅ Wallet deduction successful:', walletData);
                     updateStatus('✅ Wallet deduction successful');
+                    
+                    // Update the local wallet balance immediately
+                    walletBalance = walletData.new_balance || (walletBalance - total);
+                    document.getElementById('walletBalance').textContent = `$${walletBalance.toFixed(2)}`;
+                    
                 } else {
                     const errorData = await walletResponse.text();
                     console.error('❌ Wallet deduction failed:', errorData);
-                    updateStatus('❌ Wallet API failed, continuing anyway for testing...');
+                    throw new Error('Wallet deduction failed: ' + errorData);
                 }
 
-                // Step 2: Test container loan
-                updateStatus('Testing container API...');
+                // Step 2: Container loan
+                updateStatus('Registering container loan...');
                 const containerId = 'C' + Math.random().toString().slice(2, 9);
                 console.log('Calling container API:', `${CONTAINER_API_BASE}/api/loan`);
                 
@@ -807,8 +812,9 @@
 
                 console.log('Container response status:', loanResponse.status);
                 
+                let loanData = null;
                 if (loanResponse.ok) {
-                    const loanData = await loanResponse.json();
+                    loanData = await loanResponse.json();
                     console.log('✅ Container loan successful:', loanData);
                     updateStatus('✅ Container loan registered');
                 } else {
@@ -817,8 +823,8 @@
                     updateStatus('❌ Container API failed, continuing anyway...');
                 }
 
-                // Step 3: Test transaction
-                updateStatus('Testing transaction API...');
+                // Step 3: Transaction
+                updateStatus('Recording transaction...');
                 console.log('Calling transaction API:', `${TRANSACTION_API_BASE}/api/transaction`);
                 
                 const transactionResponse = await fetch(`${TRANSACTION_API_BASE}/api/transaction`, {
@@ -842,12 +848,37 @@
                 } else {
                     const errorData = await transactionResponse.text();
                     console.error('❌ Transaction failed:', errorData);
-                    updateStatus('❌ Transaction API failed');
+                    updateStatus('❌ Transaction API failed - check Lambda logs');
                 }
 
-                // Show results
-                showMessage('Purchase test completed! Check console for detailed results.');
-                updateStatus('Purchase test completed - check browser console');
+                // Step 4: Clear cart and refresh
+                updateStatus('Clearing cart...');
+                try {
+                    await fetch(`${CART_API_BASE}/api/cart/${currentUserId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    // Clear local cart
+                    cartItems = [];
+                    displayCart();
+                    
+                } catch (cartError) {
+                    console.warn('Cart clearing failed:', cartError);
+                }
+
+                // Success message
+                showMessage(`Purchase successful! Total: $${total.toFixed(2)}. ${loanData ? 'Container loan registered.' : ''}`);
+                updateStatus('Purchase completed successfully!');
+
+                // Redirect after delay
+                setTimeout(() => {
+                    if (confirm('Purchase completed! Would you like to view your containers on loan?')) {
+                        window.location.href = 'containers-on-loan.html';
+                    }
+                }, 2000);
 
             } catch (error) {
                 console.error('Purchase error:', error);
