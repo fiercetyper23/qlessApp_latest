@@ -435,7 +435,7 @@
                 
                 const imageHTML = item.image_url ? 
                     '<img src="' + item.image_url + '" alt="' + itemName + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display=\'none\'">' : 
-                    '🍽️ ' + itemName;
+                    '' + itemName;
 
                 itemsHTML += '<div class="food-card" data-item-id="' + item.item_id + '">' +
                     '<div class="favorite-badge">Favorite</div>' +
@@ -446,7 +446,7 @@
                         '<div class="food-price">$' + itemPrice + '</div>' +
                         '<div class="vendor-info">Vendor: ' + (item.vendor_id || 'Unknown') + '</div>' +
                         '<div class="food-actions">' +
-                            '<button class="btn btn-danger" onclick="removeFromFavorites(\'' + item.item_id + '\', \'' + itemName + '\')">Remove ❤️</button>' +
+                            '<button class="btn btn-danger" onclick="removeFromFavorites(\'' + item.item_id + '\', \'' + itemName + '\')">Remove From Favourites</button>' +
                             '<button class="btn btn-primary" onclick="addToCart(\'' + item.item_id + '\', \'' + itemName + '\', ' + item.price + ')">Add to Cart</button>' +
                         '</div>' +
                     '</div>' +
@@ -457,7 +457,7 @@
         }
 
         async function removeFromFavorites(itemId, itemName) {
-            if (!confirm('Remove "' + itemName + '" from favorites?')) return;
+            if (!confirm('Remove "' + itemName + '" from favourites?')) return;
 
             try {
                 updateStatus('Removing from favorites...');
@@ -478,13 +478,13 @@
                 });
                 
                 displayFavorites();
-                showMessage('"' + itemName + '" removed from favorites!');
-                updateStatus('Item removed from favorites');
+                showMessage('"' + itemName + '" removed from favourites!');
+                updateStatus('Item removed from favourites');
 
             } catch (error) {
-                console.error('Error removing from favorites:', error);
-                showMessage('Failed to remove from favorites: ' + error.message, true);
-                updateStatus('Failed to remove from favorites');
+                console.error('Error removing from favourites:', error);
+                showMessage('Failed to remove from favourites: ' + error.message, true);
+                updateStatus('Failed to remove from favourites');
             }
         }
 
@@ -492,7 +492,7 @@
             if (!confirm('Are you sure you want to clear all favorites?')) return;
 
             try {
-                updateStatus('Clearing all favorites...');
+                updateStatus('Clearing all favourites...');
 
                 const response = await fetch(ENDPOINTS.favorites + '/' + currentUserId, {
                     method: 'DELETE',
@@ -593,7 +593,7 @@
         }
 
         window.addEventListener('load', async function() {
-            console.log('Favorites Page Loaded');
+            console.log('Favourites Page Loaded');
 
             const accessToken = localStorage.getItem('accessToken');
             if (!accessToken || !isTokenValid(accessToken)) {
